@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    font-family: "Inter", "Sarabun", "Prompt", -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+    line-height: 1.5;
+    font-weight: 400;
+    color-scheme: light;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply min-h-screen min-w-[320px] bg-slate-100 text-slate-900 antialiased;
+  }
+
+  a {
+    @apply font-medium text-indigo-500 no-underline transition-colors duration-150;
+  }
+
+  a:hover {
+    @apply text-indigo-400;
+  }
+
+  #app {
+    @apply min-h-screen;
+  }
+}
