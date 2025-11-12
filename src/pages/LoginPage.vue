@@ -83,22 +83,19 @@ const handleLogout = () => {
 
 <template>
   <section
-    class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-10 rounded-3xl border border-slate-200 bg-white/80 px-6 py-10 shadow-lg backdrop-blur-sm sm:px-10"
+    class="mx-auto flex h-[50px] w-full max-w-xl flex-col gap-3 rounded-3xl border border-slate-200 bg-white/80 px-4 py-4 shadow-lg backdrop-blur-sm"
   >
-    <header class="space-y-3 text-center sm:text-left">
-      <p class="text-sm font-semibold uppercase tracking-widest text-blue-500">
+    <header class="space-y-3 text-center">
+      <p class="text-3xl font-bold tracking-tight text-blue-500 sm:text-4xl">
         เข้าสู่ระบบ
       </p>
-      <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-        ยินดีต้อนรับกลับ
+      <h1 class="text-sm font-medium text-slate-600 sm:text-lg">
+        ยินดีต้อนรับ เข้าสู่เที่ยวไหนดี
       </h1>
-      <p class="text-base text-slate-600 sm:max-w-lg">
-        เข้าสู่บัญชีของคุณเพื่อจัดการทริปที่บันทึกไว้ ติดตามโปรโมชั่น และรับคำแนะนำที่เหมาะกับสไตล์ของคุณ
-      </p>
     </header>
 
-    <form class="grid gap-8" @submit.prevent="handleSubmit">
-      <div class="grid gap-6">
+    <form class="grid gap-4" @submit.prevent="handleSubmit">
+      <div class="grid gap-3">
         <div class="grid gap-2">
           <label for="email" class="text-sm font-medium text-slate-700">
             อีเมล
@@ -107,7 +104,7 @@ const handleLogout = () => {
             id="email"
             v-model="form.email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="กรอกอีเมลของคุณ"
             class="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
           <p v-if="errors.email" class="text-sm text-red-500">
@@ -144,7 +141,7 @@ const handleLogout = () => {
       <button
         :type="isSuccess ? 'button' : 'submit'"
         :class="[
-          'inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold text-white transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500',
+          'mt-1 inline-flex h-[46px] w-[200px] items-center justify-center gap-2 self-center justify-self-center rounded-full border px-6 py-3 text-sm font-semibold text-white transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500',
           isSuccess
             ? 'border-red-500 bg-red-500 hover:border-red-600 hover:bg-red-600 focus:ring-red-300'
             : 'border-blue-500 bg-blue-500 hover:border-blue-600 hover:bg-blue-600 focus:ring-blue-300'

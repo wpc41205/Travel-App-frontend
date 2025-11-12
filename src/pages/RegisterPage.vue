@@ -75,21 +75,18 @@ const handleSubmit = async () => {
 
 <template>
   <section
-    class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-10 rounded-3xl border border-slate-200 bg-white/70 px-6 py-10 shadow-lg backdrop-blur-sm sm:px-10"
+    class="mx-auto flex h-[300px] w-full max-w-xl flex-col gap-3 rounded-3xl border border-slate-200 bg-white/70 px-4 py-4 shadow-lg backdrop-blur-sm"
   >
-    <header class="space-y-3 text-center sm:text-left">
-      <p class="text-sm font-semibold uppercase tracking-widest text-blue-500">
+    <header class="space-y-3 text-center">
+      <p class="text-3xl font-bold tracking-tight text-blue-500 sm:text-4xl">
         สมัครสมาชิก
       </p>
-      <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+      <h1 class="text-sm font-medium text-slate-600 sm:text-lg">
         เริ่มต้นวางแผนการเดินทางในฝันกับเรา
       </h1>
-      <p class="text-base text-slate-600 sm:max-w-xl">
-        สร้างบัญชีเพื่อบันทึกทริปที่คุณชอบ รับคำแนะนำเฉพาะตัว และอัปเดตโปรโมชั่นใหม่ล่าสุดก่อนใคร
-      </p>
     </header>
 
-    <form class="grid gap-7" @submit.prevent="handleSubmit">
+    <form class="grid gap-3" @submit.prevent="handleSubmit">
       <div class="grid gap-2">
         <label for="fullName" class="text-sm font-medium text-slate-700">
           ชื่อ-นามสกุล
@@ -98,7 +95,7 @@ const handleSubmit = async () => {
           id="fullName"
           v-model="form.fullName"
           type="text"
-          placeholder="เช่น กมลชนก จันทรัตน์"
+          placeholder="กรอกชื่อ-นามสกุลของคุณ"
           class="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
         />
         <p v-if="errors.fullName" class="text-sm text-red-500">
@@ -114,7 +111,7 @@ const handleSubmit = async () => {
           id="email"
           v-model="form.email"
           type="email"
-          placeholder="you@example.com"
+          placeholder="กรอกอีเมลของคุณ"
           class="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
         />
         <p v-if="errors.email" class="text-sm text-red-500">
@@ -144,10 +141,10 @@ const handleSubmit = async () => {
 
       <button
         type="submit"
-        class="inline-flex items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:border-blue-600 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500 w-[200px] h-[50px] self-center justify-self-center"
+        class="mt-1 inline-flex items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:border-blue-600 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500 w-[200px] h-[46px] self-center justify-self-center"
         :disabled="isSubmitting"
       >
-        <span v-if="!isSubmitting">สร้างบัญชี</span>
+        <span v-if="!isSubmitting">ลงทะเบียน</span>
         <span v-else>กำลังดำเนินการ...</span>
       </button>
 
