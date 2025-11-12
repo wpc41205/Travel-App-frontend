@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import { RouterLink } from "vue-router";
+import { RouterLink, useRouter } from "vue-router";
 import { login, type LoginPayload } from "../api";
+import { useAuth } from "../composables/useAuth";
 
 type LoginForm = {
   email: string;
@@ -24,6 +25,8 @@ const errors = reactive<Record<keyof LoginForm, string>>({
 const isSubmitting = ref(false);
 const isSuccess = ref(false);
 const serverError = ref("");
+const router = useRouter();
+const { login: saveAuthState, logout: clearAuthState, sync: syncAuthState } = useAuth();
 
 const validate = () => {
   errors.email = /\S+@\S+\.\S+/.test(form.email)
@@ -32,6 +35,12 @@ const validate = () => {
   errors.password = form.password ? "" : "กรุณากรอกรหัสผ่าน";
 
   return !errors.email && !errors.password;
+};
+
+const resetForm = () => {
+  form.email = "";
+  form.password = "";
+  form.remember = false;
 };
 
 const handleSubmit = async () => {
@@ -57,11 +66,18 @@ const handleSubmit = async () => {
     return;
   }
 
-  if (form.remember && token) {
-    localStorage.setItem("authToken", token);
-  }
+  saveAuthState(token, form.remember);
+  syncAuthState();
 
   isSuccess.value = true;
+  await router.push("/");
+};
+
+const handleLogout = () => {
+  clearAuthState();
+  syncAuthState();
+  resetForm();
+  isSuccess.value = false;
 };
 </script>
 
@@ -126,11 +142,18 @@ const handleSubmit = async () => {
       </label>
 
       <button
-        type="submit"
-        class="inline-flex items-center justify-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-6 py-3 text-sm font-semibold text-white transition hover:border-blue-600 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500"
+        :type="isSuccess ? 'button' : 'submit'"
+        :class="[
+          'inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold text-white transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-200 disabled:text-slate-500',
+          isSuccess
+            ? 'border-red-500 bg-red-500 hover:border-red-600 hover:bg-red-600 focus:ring-red-300'
+            : 'border-blue-500 bg-blue-500 hover:border-blue-600 hover:bg-blue-600 focus:ring-blue-300'
+        ]"
         :disabled="isSubmitting"
+        @click="isSuccess ? handleLogout() : undefined"
       >
-        <span v-if="!isSubmitting">เข้าสู่ระบบ</span>
+        <span v-if="isSuccess">ออกจากระบบ</span>
+        <span v-else-if="!isSubmitting">เข้าสู่ระบบ</span>
         <span v-else>กำลังตรวจสอบ...</span>
       </button>
 
