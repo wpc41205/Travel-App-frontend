@@ -1,25 +1,56 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from "vue";
 
-const props = defineProps({
-  trip: {
-    type: Object,
-    required: true,
-  },
-});
+type Nullable<T> = T | null | undefined;
 
-const getHeroImage = (trip) => {
+type Trip = {
+  title: string;
+  category?: Nullable<string>;
+  subtitle?: Nullable<string>;
+  description?: Nullable<string>;
+  photos?: Nullable<string | string[]>;
+  latitude?: Nullable<number | string>;
+  longitude?: Nullable<number | string>;
+  price?: Nullable<number | string>;
+  duration?: Nullable<string>;
+  location?: Nullable<string>;
+  tags?: Nullable<string | string[]>;
+  topics?: Nullable<string | string[]>;
+  keywords?: Nullable<string | string[]>;
+  link?: Nullable<string>;
+  url?: Nullable<string>;
+};
+
+const props = defineProps<{
+  trip: Trip;
+}>();
+
+const emit = defineEmits<{
+  (event: "tagClick", tag: string): void;
+}>();
+
+const getHeroImage = (trip: Trip): string | null => {
   const photos = trip?.photos;
 
   if (Array.isArray(photos) && photos.length > 0) {
-    return photos[0];
+    const first = (photos as unknown[]).find(
+      (item): item is string => typeof item === "string" && item.trim() !== ""
+    );
+    if (first) {
+      return first;
+    }
   }
 
   if (typeof photos === "string" && photos.trim() !== "") {
     try {
-      const parsed = JSON.parse(photos);
+      const parsed = JSON.parse(photos) as unknown;
       if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed[0];
+        const first = parsed.find(
+          (item): item is string => typeof item === "string" && item.trim() !== ""
+        );
+        if (first) {
+          return first;
+        }
       }
     } catch {
       if (photos.startsWith("http")) {
@@ -31,54 +62,63 @@ const getHeroImage = (trip) => {
   return null;
 };
 
-const formatCoordinate = (value) => {
-  if (value === undefined || value === null || value === "") {
-    return "-";
+const heroImage = computed<string | null>(() => getHeroImage(props.trip));
+
+const normalizeWhitespace = (text: string): string =>
+  text
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/\\n/g, " ")
+    .replace(/[\r\n]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const truncateCharacters = (
+  text: Nullable<string>,
+  charLimit: number
+): string | null => {
+  if (!text || typeof text !== "string") return text ?? null;
+
+  const trimmed = normalizeWhitespace(text);
+  if (trimmed.length <= charLimit) {
+    return trimmed;
   }
 
-  const numericValue = Number(value);
-  if (Number.isNaN(numericValue)) {
-    return value;
-  }
-
-  return numericValue.toFixed(3);
+  return `${trimmed.slice(0, charLimit)}…`;
 };
 
-const formatPrice = (value) => {
-  if (value === undefined || value === null || value === "") {
+const subtitleText = computed<string | null>(() => {
+  const subtitle = props.trip.subtitle;
+  if (typeof subtitle !== "string") {
     return null;
   }
 
-  const numericValue = Number(value);
-  if (Number.isNaN(numericValue)) {
-    return value;
-  }
+  return (
+    subtitle
+      .replace(/[\r\n]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim() || null
+  );
+});
 
-  return new Intl.NumberFormat("th-TH", {
-    style: "currency",
-    currency: "THB",
-    maximumFractionDigits: 0,
-  }).format(numericValue);
+const truncatedDescription = computed<string | null>(() =>
+  truncateCharacters(props.trip.description, 200)
+);
+
+const handleTagClick = (tag: string) => {
+  emit("tagClick", tag);
 };
 
-const heroImage = computed(() => getHeroImage(props.trip));
-const formattedCoordinates = computed(() => ({
-  latitude: formatCoordinate(props.trip.latitude),
-  longitude: formatCoordinate(props.trip.longitude),
-}));
-const formattedPrice = computed(() => formatPrice(props.trip.price));
-
-const additionalImages = computed(() => {
+const additionalImages = computed<string[]>(() => {
   const photos = props.trip?.photos;
-  let list = [];
+  let list: string[] = [];
 
   if (Array.isArray(photos)) {
-    list = photos;
+    list = photos.filter((item): item is string => typeof item === "string");
   } else if (typeof photos === "string" && photos.trim() !== "") {
     try {
-      const parsed = JSON.parse(photos);
+      const parsed = JSON.parse(photos) as unknown;
       if (Array.isArray(parsed)) {
-        list = parsed;
+        list = parsed.filter((item): item is string => typeof item === "string");
       }
     } catch {
       // ignore invalid json
@@ -90,10 +130,12 @@ const additionalImages = computed(() => {
     .slice(0, 4);
 });
 
-const parseList = (value) => {
+const parseList = (value: Nullable<string | string[]>): string[] => {
   if (!value) return [];
   if (Array.isArray(value)) {
-    return value.filter((item) => typeof item === "string" && item.trim() !== "");
+    return value
+      .filter((item): item is string => typeof item === "string")
+      .filter((item) => item.trim() !== "");
   }
   if (typeof value === "string") {
     return value
@@ -104,7 +146,7 @@ const parseList = (value) => {
   return [];
 };
 
-const tagList = computed(() => {
+const tagList = computed<string[]>(() => {
   const sources = [props.trip.tags, props.trip.topics, props.trip.keywords];
 
   for (const source of sources) {
@@ -117,26 +159,28 @@ const tagList = computed(() => {
   return [];
 });
 
-const primaryLink = computed(() => props.trip.link || props.trip.url || null);
+const primaryLink = computed<string | null>(
+  () => props.trip.link || props.trip.url || null
+);
 </script>
 
 <template>
-  <article
-    class="group grid overflow-hidden rounded-3xl border border-slate-300/20 bg-white/95 shadow-[0_24px_48px_rgba(15,23,42,0.08)] transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-[0_30px_60px_rgba(15,23,42,0.12)] md:grid-cols-[260px_1fr]"
-  >
-    <figure
+  <div class="group flex flex-col gap-3 md:flex-row md:items-stretch md:gap-2">
+    <div
       v-if="heroImage"
-      class="relative m-0 overflow-hidden border-b border-slate-300/20 md:border-b-0 md:border-r md:border-slate-300/20"
+      class="relative mx-auto aspect-4/3 w-full max-w-[360px] flex-none overflow-hidden rounded-3xl border border-slate-300/20 bg-white/95 shadow-[0_24px_48px_rgba(15,23,42,0.08)] transition-all duration-200 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_30px_60px_rgba(15,23,42,0.12)] md:mx-0 md:max-w-[420px]"
     >
       <img
         :src="heroImage"
         :alt="`ภาพประกอบทริป ${trip.title}`"
         loading="lazy"
-        class="h-[220px] w-full object-cover transition-transform duration-300 ease-out group-hover:scale-105 md:h-full"
+        class="block h-full w-full object-cover object-center transition-transform duration-300 ease-out group-hover:scale-105"
       />
-    </figure>
+    </div>
 
-    <div class="flex flex-col gap-5 px-7 py-6">
+    <article
+      class="mx-auto flex w-full max-w-[540px] flex-col gap-2 rounded-3xl border border-slate-300/20 bg-white/95 px-7 py-6 shadow-[0_24px_48px_rgba(15,23,42,0.08)] transition-all duration-200 ease-out group-hover:-translate-y-1 group-hover:shadow-[0_30px_60px_rgba(15,23,42,0.12)] md:mx-0 md:flex-1 md:max-w-none"
+    >
       <header class="flex flex-col gap-4">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="flex flex-col gap-2">
@@ -149,8 +193,8 @@ const primaryLink = computed(() => props.trip.link || props.trip.url || null);
             <h3 class="text-xl font-semibold text-slate-900 sm:text-2xl">
               {{ trip.title }}
             </h3>
-            <p v-if="trip.subtitle" class="text-sm font-medium text-sky-500">
-              {{ trip.subtitle }}
+            <p v-if="subtitleText" class="text-sm font-medium text-sky-500">
+              {{ subtitleText }}
             </p>
           </div>
 
@@ -179,8 +223,8 @@ const primaryLink = computed(() => props.trip.link || props.trip.url || null);
           </a>
         </div>
 
-        <p v-if="trip.description" class="text-sm leading-relaxed text-slate-600">
-          {{ trip.description }}
+        <p v-if="truncatedDescription" class="text-sm leading-relaxed text-slate-600">
+          {{ truncatedDescription }}
         </p>
       </header>
 
@@ -194,7 +238,7 @@ const primaryLink = computed(() => props.trip.link || props.trip.url || null);
           :src="image"
           :alt="`ภาพเพิ่มเติมของทริป ${trip.title}`"
           loading="lazy"
-          class="h-14 w-20 flex-none rounded-xl object-cover shadow-sm ring-1 ring-slate-200/50"
+          class="h-20 w-30 flex-none rounded-xl object-cover shadow-sm ring-1 ring-slate-200/50"
         />
       </div>
 
@@ -202,58 +246,26 @@ const primaryLink = computed(() => props.trip.link || props.trip.url || null);
         v-if="tagList.length"
         class="flex flex-wrap gap-2"
       >
-        <span
-          v-for="(tag, index) in tagList"
-          :key="`${trip.title}-tag-${index}`"
-          class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"
-        >
-          {{ tag }}
-        </span>
-      </div>
-
-      <dl
-        class="grid gap-4 text-sm sm:grid-cols-[repeat(auto-fit,minmax(160px,1fr))]"
-      >
-        <div class="flex flex-col gap-1">
-          <dt class="text-xs uppercase tracking-[0.08em] text-slate-400">
-            พิกัด
-          </dt>
-          <dd class="font-semibold text-slate-800">
-            {{ formattedCoordinates.latitude }}, {{ formattedCoordinates.longitude }}
-          </dd>
-        </div>
-
-        <div v-if="trip.duration" class="flex flex-col gap-1">
-          <dt class="text-xs uppercase tracking-[0.08em] text-slate-400">
-            ระยะเวลา
-          </dt>
-          <dd class="font-semibold text-slate-800">{{ trip.duration }}</dd>
-        </div>
-
-        <div v-if="formattedPrice" class="flex flex-col gap-1">
-          <dt class="text-xs uppercase tracking-[0.08em] text-slate-400">
-            ราคาเริ่มต้น
-          </dt>
-          <dd class="font-semibold text-slate-800">{{ formattedPrice }}</dd>
-        </div>
-
-        <div v-if="trip.location" class="flex flex-col gap-1">
-          <dt class="text-xs uppercase tracking-[0.08em] text-slate-400">
-            สถานที่
-          </dt>
-          <dd class="font-semibold text-slate-800">{{ trip.location }}</dd>
-        </div>
-      </dl>
-
-      <footer class="mt-auto flex">
         <button
           type="button"
-          class="inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(59,130,246,0.28)] transition-all duration-150 ease-out focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:ring-sky-400 focus-visible:ring-offset-white bg-[linear-gradient(120deg,#3b82f6_0%,#60a5fa_50%,#38bdf8_100%)] hover:-translate-y-0.5 hover:shadow-[0_20px_36px_rgba(59,130,246,0.32)]"
+          v-for="(tag, index) in tagList"
+          :key="`${trip.title}-tag-${index}`"
+          class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+          @click="handleTagClick(tag)"
+        >
+          {{ tag }}
+        </button>
+      </div>
+
+      <div class="mt-auto flex justify-start">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(59,130,246,0.28)] transition-all duration-150 ease-out focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:ring-sky-400 focus-visible:ring-offset-white bg-[linear-gradient(120deg,#3b82f6_0%,#60a5fa_50%,#38bdf8_100%)] hover:-translate-y-0.5 hover:shadow-[0_20px_36px_rgba(59,130,246,0.32)]"
         >
           ดูรายละเอียด
         </button>
-      </footer>
-    </div>
-  </article>
+      </div>
+    </article>
+  </div>
 </template>
 
