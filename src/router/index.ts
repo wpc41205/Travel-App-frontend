@@ -4,7 +4,7 @@ import HomePage from "../pages/HomePage.vue";
 const LoginPage = () => import("../pages/LoginPage.vue");
 const RegisterPage = () => import("../pages/RegisterPage.vue");
 const TripDetailPage = () => import("../pages/TripDetailPage.vue");
-
+const DashboardPage = () => import("../pages/dashboard.vue");
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -27,6 +27,11 @@ const router = createRouter({
       path: "/trips/:tripId",
       name: "trip-detail",
       component: TripDetailPage,
+    },
+    {
+      path: "/dashboard",
+      name: "dashboard",
+      component: DashboardPage,
     },
   ],
   scrollBehavior() {

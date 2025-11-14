@@ -62,3 +62,7 @@ export function useAuth() {
   return { isAuthenticated, login, logout, sync };
 }
 
+export function getAuthToken() {
+  return currentToken.value;
+}
+

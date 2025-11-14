@@ -22,44 +22,30 @@ const handleLogout = () => {
       เที่ยวไหนดี
     </RouterLink>
 
-    <div class="flex items-center gap-4">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-full border border-blue-500 bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:border-blue-600 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 sm:hidden"
+    <div class="flex items-center gap-3">
+      <RouterLink
+        to="/dashboard"
+        class="hidden rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 sm:inline-flex"
       >
-        เมนู
-      </button>
-
-      <ul class="hidden items-center gap-6 text-sm font-medium text-slate-600 sm:flex">
-        <li>
-          <RouterLink to="/" class="transition hover:text-slate-900">
-            หน้าหลัก
-          </RouterLink>
-        </li>
-        <li>
-          <a href="#trips" class="transition hover:text-slate-900">ทริปแนะนำ</a>
-        </li>
-        <li>
-          <a href="#guide" class="transition hover:text-slate-900"
-            >คู่มือการเดินทาง</a
-          >
-        </li>
-        <li>
-          <a href="#contact" class="transition hover:text-slate-900"
-            >ติดต่อเรา</a
-          >
-        </li>
-      </ul>
+        จัดการปลายทาง
+      </RouterLink>
 
       <div class="flex flex-col items-end gap-1">
-        <button
-          v-if="isAuthenticated"
-          type="button"
-          class="inline-flex items-center gap-2 rounded-full border border-red-500 bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:border-red-600 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
-          @click="handleLogout"
-        >
-          ออกจากระบบ
-        </button>
+        <template v-if="isAuthenticated">
+          <RouterLink
+            to="/dashboard"
+            class="inline-flex items-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-900 sm:hidden"
+          >
+            จัดการปลายทาง
+          </RouterLink>
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-full border border-red-500 bg-red-500 px-4 py-2 text-sm font-semibold text-white transition hover:border-red-600 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300"
+            @click="handleLogout"
+          >
+            ออกจากระบบ
+          </button>
+        </template>
         <RouterLink
           v-else
           to="/login"
