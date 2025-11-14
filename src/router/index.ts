@@ -3,6 +3,7 @@ import HomePage from "../pages/HomePage.vue";
 
 const LoginPage = () => import("../pages/LoginPage.vue");
 const RegisterPage = () => import("../pages/RegisterPage.vue");
+const TripDetailPage = () => import("../pages/TripDetailPage.vue");
 
 const router = createRouter({
   history: createWebHistory(),
@@ -21,6 +22,11 @@ const router = createRouter({
       path: "/register",
       name: "register",
       component: RegisterPage,
+    },
+    {
+      path: "/trips/:tripId",
+      name: "trip-detail",
+      component: TripDetailPage,
     },
   ],
   scrollBehavior() {

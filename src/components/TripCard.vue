@@ -1,25 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useRouter } from "vue-router";
+import type { Trip } from "../api";
+import { getTripIdentifier } from "../utils/tripIdentifier";
 
 type Nullable<T> = T | null | undefined;
-
-type Trip = {
-  title: string;
-  category?: Nullable<string>;
-  subtitle?: Nullable<string>;
-  description?: Nullable<string>;
-  photos?: Nullable<string | string[]>;
-  latitude?: Nullable<number | string>;
-  longitude?: Nullable<number | string>;
-  price?: Nullable<number | string>;
-  duration?: Nullable<string>;
-  location?: Nullable<string>;
-  tags?: Nullable<string | string[]>;
-  topics?: Nullable<string | string[]>;
-  keywords?: Nullable<string | string[]>;
-  link?: Nullable<string>;
-  url?: Nullable<string>;
-};
 
 const props = defineProps<{
   trip: Trip;
@@ -28,6 +13,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: "tagClick", tag: string): void;
 }>();
+
+const router = useRouter();
 
 const getHeroImage = (trip: Trip): string | null => {
   const photos = trip?.photos;
@@ -162,6 +149,28 @@ const tagList = computed<string[]>(() => {
 const primaryLink = computed<string | null>(
   () => props.trip.link || props.trip.url || null
 );
+
+const tripIdentifier = computed(() => getTripIdentifier(props.trip));
+
+const detailButtonClasses = computed(() => {
+  const baseClasses =
+    "inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-white transition-all duration-150 ease-out focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:ring-sky-400 focus-visible:ring-offset-white";
+
+  if (tripIdentifier.value) {
+    return `${baseClasses} shadow-[0_16px_30px_rgba(59,130,246,0.28)] bg-[linear-gradient(120deg,#3b82f6_0%,#60a5fa_50%,#38bdf8_100%)] hover:-translate-y-0.5 hover:shadow-[0_20px_36px_rgba(59,130,246,0.32)]`;
+  }
+
+  return `${baseClasses} bg-slate-400/70 cursor-not-allowed opacity-70`;
+});
+
+const goToDetail = () => {
+  if (!tripIdentifier.value) return;
+
+  router.push({
+    name: "trip-detail",
+    params: { tripId: tripIdentifier.value },
+  });
+};
 </script>
 
 <template>
@@ -229,20 +238,6 @@ const primaryLink = computed<string | null>(
       </header>
 
       <div
-        v-if="additionalImages.length"
-        class="flex flex-wrap gap-3"
-      >
-        <img
-          v-for="(image, index) in additionalImages"
-          :key="`${trip.title}-image-${index}`"
-          :src="image"
-          :alt="`ภาพเพิ่มเติมของทริป ${trip.title}`"
-          loading="lazy"
-          class="h-20 w-30 flex-none rounded-xl object-cover shadow-sm ring-1 ring-slate-200/50"
-        />
-      </div>
-
-      <div
         v-if="tagList.length"
         class="flex flex-wrap gap-2"
       >
@@ -257,10 +252,26 @@ const primaryLink = computed<string | null>(
         </button>
       </div>
 
-      <div class="mt-auto flex justify-start">
+      <div
+        v-if="additionalImages.length"
+        class="flex flex-wrap gap-3"
+      >
+        <img
+          v-for="(image, index) in additionalImages"
+          :key="`${trip.title}-image-${index}`"
+          :src="image"
+          :alt="`ภาพเพิ่มเติมของทริป ${trip.title}`"
+          loading="lazy"
+          class="h-20 w-30 flex-none rounded-xl object-cover shadow-sm ring-1 ring-slate-200/50"
+        />
+      </div>
+
+      <div class="mt-auto flex justify-end">
         <button
           type="button"
-          class="inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-white shadow-[0_16px_30px_rgba(59,130,246,0.28)] transition-all duration-150 ease-out focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:ring-sky-400 focus-visible:ring-offset-white bg-[linear-gradient(120deg,#3b82f6_0%,#60a5fa_50%,#38bdf8_100%)] hover:-translate-y-0.5 hover:shadow-[0_20px_36px_rgba(59,130,246,0.32)]"
+          :class="detailButtonClasses"
+          :disabled="!tripIdentifier"
+          @click="goToDetail"
         >
           ดูรายละเอียด
         </button>

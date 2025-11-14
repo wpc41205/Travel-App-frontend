@@ -1,9 +1,24 @@
 import axios from "axios";
 
+type Nullable<T> = T | null | undefined;
+
 export type Trip = {
-  id?: string | number;
-  title?: string;
-  description?: string;
+  id?: Nullable<string | number>;
+  title?: Nullable<string>;
+  category?: Nullable<string>;
+  subtitle?: Nullable<string>;
+  description?: Nullable<string>;
+  photos?: Nullable<string | string[]>;
+  latitude?: Nullable<number | string>;
+  longitude?: Nullable<number | string>;
+  price?: Nullable<number | string>;
+  duration?: Nullable<string>;
+  location?: Nullable<string>;
+  tags?: Nullable<string | string[]>;
+  topics?: Nullable<string | string[]>;
+  keywords?: Nullable<string | string[]>;
+  link?: Nullable<string>;
+  url?: Nullable<string>;
   [key: string]: unknown;
 };
 
