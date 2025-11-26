@@ -6,7 +6,7 @@
       class="h-12 w-12 rounded-full border-4 border-indigo-500/20 border-t-indigo-500 animate-spin"
       aria-hidden="true"
     ></span>
-    <p class="text-sm text-slate-600">กำลังโหลดข้อมูลทริป...</p>
+    <p class="text-sm text-slate-600">Loading trip data...</p>
   </div>
 </template>
 

@@ -108,7 +108,7 @@ const goToDetail = () => {
           @click="goToDetail"
         >
           <span>Continue reading</span>
-          <div class="flex h-10 w-10 items-center justify-center rounded-full border border-amber-200 bg-white transition-transform duration-200 group-hover:translate-x-1">
+          <div class="flex h-7 w-7 items-center justify-center rounded-full border border-amber-200 bg-white transition-transform duration-200 group-hover:translate-x-1">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

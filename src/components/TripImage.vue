@@ -49,7 +49,7 @@ const heroImage = computed<string | null>(() => getHeroImage(props.trip));
   >
     <img
       :src="heroImage"
-      :alt="`ภาพประกอบทริป ${trip.title}`"
+      :alt="`Trip illustration for ${trip.title}`"
       loading="lazy"
       class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
     />

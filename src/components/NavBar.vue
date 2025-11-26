@@ -49,7 +49,7 @@ const closeMobileMenu = () => {
         <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
         <circle cx="12" cy="10" r="3" />
       </svg>
-      <span class="bg-gradient-to-r from-blue-600 to-sky-500 bg-clip-text font-extrabold text-transparent">
+      <span class="bg-linear-to-r from-blue-600 to-sky-500 bg-clip-text font-extrabold text-transparent">
         Travel Explorer
       </span>
     </RouterLink>
@@ -134,27 +134,6 @@ const closeMobileMenu = () => {
     </div>
 
     <div class="flex items-center gap-3">
-      <!-- Desktop Create Trip Button -->
-      <RouterLink
-        to="/dashboard"
-        class="group hidden items-center gap-2 rounded-full border border-slate-200 bg-gradient-to-r from-blue-50 to-sky-50 px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300 hover:from-blue-100 hover:to-sky-100 hover:shadow-md hover:shadow-blue-200/50 lg:inline-flex"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="h-4 w-4 text-blue-600 transition-transform duration-200 group-hover:scale-110"
-        >
-          <path d="M5 12h14" />
-          <path d="M12 5v14" />
-        </svg>
-        <span>Create Trip</span>
-      </RouterLink>
-
       <!-- Mobile Menu Button -->
       <button
         type="button"
@@ -197,7 +176,7 @@ const closeMobileMenu = () => {
         <template v-if="isAuthenticated">
           <RouterLink
             to="/dashboard"
-            class="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md sm:hidden"
+            class="group inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-200 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -217,7 +196,7 @@ const closeMobileMenu = () => {
           </RouterLink>
           <button
             type="button"
-            class="group inline-flex items-center gap-2 rounded-full border border-red-500 bg-gradient-to-r from-red-500 to-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-red-200/50 transition-all duration-200 hover:border-red-600 hover:from-red-600 hover:to-rose-600 hover:shadow-lg hover:shadow-red-300/50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2"
+            class="group inline-flex items-center gap-2 rounded-full border border-red-500 bg-linear-to-r from-red-500 to-rose-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-red-200/50 transition-all duration-200 hover:border-red-600 hover:from-red-600 hover:to-rose-600 hover:shadow-lg hover:shadow-red-300/50 focus:outline-none focus:ring-2 focus:ring-red-300 focus:ring-offset-2"
             @click="handleLogout"
           >
             <svg
@@ -240,7 +219,7 @@ const closeMobileMenu = () => {
         <RouterLink
           v-else
           to="/login"
-          class="group inline-flex items-center gap-2 rounded-full border border-blue-500 bg-gradient-to-r from-blue-500 to-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200/50 transition-all duration-200 hover:border-blue-600 hover:from-blue-600 hover:to-sky-600 hover:shadow-lg hover:shadow-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+          class="group inline-flex items-center gap-2 rounded-full border border-blue-500 bg-linear-to-r from-blue-500 to-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200/50 transition-all duration-200 hover:border-blue-600 hover:from-blue-600 hover:to-sky-600 hover:shadow-lg hover:shadow-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -396,7 +375,7 @@ const closeMobileMenu = () => {
           <RouterLink
             to="/login"
             @click="closeMobileMenu"
-            class="group flex items-center gap-3 rounded-lg bg-gradient-to-r from-blue-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:from-blue-600 hover:to-sky-600"
+            class="group flex items-center gap-3 rounded-lg bg-linear-to-r from-blue-500 to-sky-500 px-4 py-3 text-sm font-semibold text-white transition-all duration-200 hover:from-blue-600 hover:to-sky-600"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"

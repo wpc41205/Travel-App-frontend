@@ -69,7 +69,7 @@ const showSearchNoResults = computed(
     >
       <div class="flex w-[75%] flex-row items-center justify-between">
         <h2 v-if="!searchQuery.trim()" class="text-left text-3xl font-bold text-slate-900 sm:text-4xl">Latest Travel Guides</h2>
-        <label for="trip-search" class="sr-only">ค้นหาทริป</label>
+        <label for="trip-search" class="sr-only">Search trips</label>
         <div class="relative">
           <svg class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -83,7 +83,7 @@ const showSearchNoResults = computed(
           v-if="showSearchNoResults"
           class="rounded-2xl border border-slate-200 bg-white/80 px-5 py-6 text-center text-sm text-slate-500"
         >
-          ไม่พบทริปที่ตรงกับคำค้น
+          No trips match your search
           <strong class="font-semibold text-slate-600">“{{ searchQuery }}”</strong>
         </p>
 

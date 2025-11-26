@@ -113,7 +113,7 @@ watch(filteredTrips, () => {
       class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 px-5 py-3 text-sm text-sky-700"
     >
       <div class="flex flex-wrap items-center gap-2">
-        <span>กำลังกรองด้วยแท็ก</span>
+        <span>Filtering by tags</span>
         <ul class="flex flex-wrap items-center gap-2">
           <li
             v-for="tag in selectedTags"
@@ -124,7 +124,7 @@ watch(filteredTrips, () => {
             <button
               type="button"
               class="inline-flex h-4 w-4 items-center justify-center rounded-full text-black"
-              aria-label="ลบแท็ก"
+              aria-label="Remove tag"
               @click="handleTagFilter(tag)"
             >
               &times;
@@ -137,7 +137,7 @@ watch(filteredTrips, () => {
         class="inline-flex items-center gap-1 rounded-full border border-sky-200 px-3 py-1 text-xs font-semibold text-sky-600 transition hover:border-sky-300 hover:bg-white/80"
         @click="clearFilter"
       >
-        ล้างตัวกรอง
+        Clear filters
       </button>
     </div>
 
@@ -155,11 +155,11 @@ watch(filteredTrips, () => {
       class="rounded-2xl border border-slate-200 bg-white/80 px-5 py-6 text-center text-sm text-slate-500"
     >
       <template v-if="selectedTags.length">
-        ไม่พบทริปที่ตรงกับแท็ก
+        No trips match the tags
         <strong class="font-semibold text-slate-600">{{ selectedTags.join(", ") }}</strong>
       </template>
       <template v-else>
-        ไม่พบข้อมูลทริป
+        No trips available
       </template>
     </p>
 
@@ -186,13 +186,13 @@ watch(filteredTrips, () => {
         >
           <polyline points="15 18 9 12 15 6" />
         </svg>
-        <span>ก่อนหน้า</span>
+        <span>Previous</span>
       </button>
 
       <div class="flex items-center gap-2 text-sm text-slate-600">
-        <span>หน้า</span>
+        <span>Page</span>
         <span class="font-semibold text-slate-900">{{ currentPage }}</span>
-        <span>จาก</span>
+        <span>of</span>
         <span class="font-semibold text-slate-900">{{ totalPages }}</span>
       </div>
 
@@ -202,7 +202,7 @@ watch(filteredTrips, () => {
         class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
         @click="goToNextPage"
       >
-        <span>ถัดไป</span>
+        <span>Next</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"

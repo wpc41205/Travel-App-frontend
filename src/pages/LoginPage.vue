@@ -31,8 +31,8 @@ const { login: saveAuthState, logout: clearAuthState, sync: syncAuthState } = us
 const validate = () => {
   errors.email = /\S+@\S+\.\S+/.test(form.email)
     ? ""
-    : "กรุณากรอกอีเมลให้ถูกต้อง";
-  errors.password = form.password ? "" : "กรุณากรอกรหัสผ่าน";
+    : "Please enter a valid email address";
+  errors.password = form.password ? "" : "Please enter your password";
 
   return !errors.email && !errors.password;
 };
@@ -62,13 +62,14 @@ const handleSubmit = async () => {
   isSubmitting.value = false;
 
   if (!success) {
-    serverError.value = message ?? "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง";
+    serverError.value =
+      message ?? "Sign-in failed. Please try again in a moment.";
     return;
   }
 
   if (!token) {
     console.warn("No token received from API response");
-    serverError.value = "ไม่ได้รับ token จากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง";
+    serverError.value = "No token received from the server. Please try again.";
     return;
   }
 
@@ -89,14 +90,14 @@ const handleLogout = () => {
 
 <template>
   <section
-    class="mx-auto flex h-[50px] w-full flex-col gap-3 rounded-3xl border border-slate-200 bg-white/80 px-4 py-4 shadow-lg backdrop-blur-sm lg:w-[80%]"
+    class="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 rounded-3xl border border-slate-200 bg-white/80 px-6 py-8 shadow-lg backdrop-blur-sm sm:px-10 sm:py-10"
   >
     <header class="space-y-3 text-center">
       <p class="text-3xl font-bold tracking-tight text-blue-500 sm:text-4xl">
-        เข้าสู่ระบบ
+        Sign in
       </p>
       <h1 class="text-sm font-medium text-slate-600 sm:text-lg">
-        ยินดีต้อนรับ เข้าสู่เที่ยวไหนดี
+        Welcome back to Travel Explorer
       </h1>
     </header>
 
@@ -104,13 +105,13 @@ const handleLogout = () => {
       <div class="grid gap-3">
         <div class="grid gap-2">
           <label for="email" class="text-sm font-medium text-slate-700">
-            อีเมล
+            Email
           </label>
           <input
             id="email"
             v-model="form.email"
             type="email"
-            placeholder="กรอกอีเมลของคุณ"
+            placeholder="Enter your email"
             class="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
           <p v-if="errors.email" class="text-sm text-red-500">
@@ -120,13 +121,13 @@ const handleLogout = () => {
 
         <div class="grid gap-2">
           <label for="password" class="text-sm font-medium text-slate-700">
-            รหัสผ่าน
+            Password
           </label>
           <input
             id="password"
             v-model="form.password"
             type="password"
-            placeholder="กรอกรหัสผ่านของคุณ"
+            placeholder="Enter your password"
             class="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           />
           <p v-if="errors.password" class="text-sm text-red-500">
@@ -141,7 +142,7 @@ const handleLogout = () => {
           type="checkbox"
           class="h-4 w-4 rounded border-slate-300 text-blue-500 focus:ring-blue-400"
         />
-        <span>จดจำฉันในครั้งถัดไป</span>
+        <span>Remember me next time</span>
       </label>
 
       <button
@@ -155,9 +156,9 @@ const handleLogout = () => {
         :disabled="isSubmitting"
         @click="isSuccess ? handleLogout() : undefined"
       >
-        <span v-if="isSuccess">ออกจากระบบ</span>
-        <span v-else-if="!isSubmitting">เข้าสู่ระบบ</span>
-        <span v-else>กำลังตรวจสอบ...</span>
+        <span v-if="isSuccess">Sign out</span>
+        <span v-else-if="!isSubmitting">Sign in</span>
+        <span v-else>Verifying...</span>
       </button>
 
       <p v-if="serverError" class="rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -165,19 +166,18 @@ const handleLogout = () => {
       </p>
 
       <p v-if="isSuccess" class="rounded-2xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-        เข้าสู่ระบบสำเร็จ! ระบบกำลังนำคุณไปยังแดชบอร์ด
+        Signed in successfully! Redirecting you to the dashboard.
       </p>
     </form>
 
     <footer class="flex flex-col gap-3 text-center text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between sm:text-left">
-      <p>ยังไม่มีบัญชี?</p>
+      <p>Don’t have an account yet?</p>
       <RouterLink
         to="/register"
         class="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-500 hover:text-blue-600"
       >
-        สมัครสมาชิกใหม่
+        Create an account
       </RouterLink>
     </footer>
   </section>
 </template>
-

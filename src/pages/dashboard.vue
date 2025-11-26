@@ -80,7 +80,10 @@ const loadTrips = async () => {
     trips.value = fetchedTrips;
   } catch (error: any) {
     console.error("Error in loadTrips:", error);
-    const errorMsg = error.response?.data?.message || error.message || "ไม่สามารถโหลดข้อมูลทริปของคุณได้";
+    const errorMsg =
+      error.response?.data?.message ||
+      error.message ||
+      "Unable to load your trips right now.";
     errorMessage.value = errorMsg;
     console.error("Error details:", {
       status: error.response?.status,
@@ -176,7 +179,7 @@ const handleSubmit = async () => {
   if (!id) return;
 
   if (!form.title.trim() || !form.province.trim()) {
-    errorMessage.value = "กรุณากรอกชื่อและจังหวัดให้ครบถ้วน";
+    errorMessage.value = "Please provide both the destination name and province.";
     return;
   }
 
@@ -215,7 +218,7 @@ const handleSubmit = async () => {
     closeForm();
   } catch (error) {
     console.error(error);
-    errorMessage.value = "ไม่สามารถบันทึกข้อมูลได้";
+    errorMessage.value = "We couldn’t save your changes. Please try again.";
   } finally {
     isSubmitting.value = false;
   }
@@ -224,7 +227,7 @@ const handleSubmit = async () => {
 const handleDelete = async (trip: UserTrip) => {
   const id = ownerId.value;
   if (!id) return;
-  const confirmed = window.confirm(`ยืนยันการลบทริป "${trip.title}" หรือไม่?`);
+  const confirmed = window.confirm(`Delete the trip "${trip.title}"?`);
   if (!confirmed) return;
 
   try {
@@ -232,7 +235,7 @@ const handleDelete = async (trip: UserTrip) => {
     await loadTrips();
   } catch (error) {
     console.error(error);
-    errorMessage.value = "ไม่สามารถลบทริปได้";
+    errorMessage.value = "We couldn’t delete this trip. Please try again.";
   }
 };
 
@@ -242,10 +245,73 @@ const viewTrip = (trip: UserTrip) => {
   router.push({ name: "trip-detail", params: { tripId: identifier } });
 };
 
+const extractTags = (value: UserTrip["tags"]): string[] => {
+  if (Array.isArray(value)) {
+    return value
+      .filter((tag): tag is string => typeof tag === "string" && tag.trim() !== "")
+      .map((tag) => tag.trim());
+  }
+  if (typeof value === "string" && value.trim()) {
+    return value
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter((tag) => tag !== "");
+  }
+  return [];
+};
+
+const formatCoordinates = (
+  latitude: UserTrip["latitude"],
+  longitude: UserTrip["longitude"]
+): string => {
+  const lat = typeof latitude === "number" ? latitude : latitude?.toString().trim();
+  const lng = typeof longitude === "number" ? longitude : longitude?.toString().trim();
+  if (!lat && !lng) return "-";
+  if (lat && lng) return `${lat}, ${lng}`;
+  return lat ? `${lat}` : `${lng}`;
+};
+
+const totalTrips = computed(() => trips.value.length);
+
+const taggedTripCount = computed(() =>
+  trips.value.filter((trip) => extractTags(trip.tags).length > 0).length
+);
+
+const geoReadyCount = computed(() =>
+  trips.value.filter(
+    (trip) => formatCoordinates(trip.latitude, trip.longitude) !== "-"
+  ).length
+);
+
+const photoInventory = computed(() =>
+  trips.value.reduce((count, trip) => {
+    if (Array.isArray(trip.photos)) {
+      return (
+        count +
+        trip.photos.filter(
+          (photo): photo is string => typeof photo === "string" && photo.trim() !== ""
+        ).length
+      );
+    }
+
+    if (typeof trip.photos === "string" && trip.photos.trim()) {
+      return count + 1;
+    }
+
+    return count;
+  }, 0)
+);
+
+const formatShare = (count: number): string => {
+  const total = totalTrips.value;
+  if (!total) return "0%";
+  return `${Math.round((count / total) * 100)}%`;
+};
+
 const formatDate = (value?: string | number | Date | null) => {
   if (!value) return "-";
   try {
-    return new Intl.DateTimeFormat("th-TH", {
+    return new Intl.DateTimeFormat("en-US", {
       dateStyle: "medium",
       timeStyle: "short",
     }).format(new Date(value));
@@ -272,9 +338,9 @@ onMounted(async () => {
     <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Dashboard</p>
-        <h1 class="text-3xl font-semibold text-slate-900">จัดการปลายทางของฉัน</h1>
+        <h1 class="text-3xl font-semibold text-slate-900">Manage My Destinations</h1>
         <p class="text-sm text-slate-500">
-          สร้าง แก้ไข หรือลบทริปที่คุณเป็นเจ้าของได้จากที่นี่
+          Create, edit, or remove the trips you own from this view.
         </p>
       </div>
       <button
@@ -282,64 +348,97 @@ onMounted(async () => {
         class="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
         @click="openCreateForm"
       >
-        เพิ่มปลายทาง
+        Add destination
       </button>
     </header>
 
-    <div class="rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-sm">
+    <div class="">
       <div v-if="isLoading" class="py-10 text-center text-sm text-slate-500">
-        กำลังโหลดข้อมูล...
+        Loading your destinations...
       </div>
       <div v-else-if="!hasTrips" class="py-10 text-center text-sm text-slate-500">
-        ยังไม่มีปลายทางที่คุณสร้าง
+        You haven’t created any destinations yet.
       </div>
       <div v-else class="overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-100 text-sm text-slate-600">
-          <thead class="text-xs uppercase tracking-wide text-slate-400">
+          <thead class="bg-slate-50/70 text-[11px] font-semibold uppercase tracking-[0.3em] text-slate-400">
             <tr>
-              <th class="px-4 py-3 text-left">ภาพ</th>
-              <th class="px-4 py-3 text-left">ชื่อทริป</th>
-              <th class="px-4 py-3 text-left">จังหวัด</th>
-              <th class="px-4 py-3 text-left">อัปเดตล่าสุด</th>
-              <th class="px-4 py-3 text-right">การจัดการ</th>
+              <th class="px-4 py-3 text-left">Photo</th>
+              <th class="px-4 py-3 text-left">Trip name</th>
+              <th class="px-4 py-3 text-left">Description</th>
+              <th class="px-4 py-3 text-left">Tags</th>
+              <th class="px-4 py-3 text-left">Coordinates</th>
+              <th class="px-4 py-3 text-left">Last updated</th>
+              <th class="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-100">
-            <tr v-for="trip in trips" :key="trip.id" class="align-top">
-              <td class="px-4 py-3">
+            <tr
+              v-for="trip in trips"
+              :key="trip.id"
+              class="align-top transition-colors duration-200 hover:bg-slate-50/80"
+            >
+              <td class="px-4 py-4">
                 <img
                   :src="Array.isArray(trip.photos) ? trip.photos[0] : ''"
                   :alt="trip.title ?? 'thumbnail'"
-                  class="h-16 w-20 rounded-xl object-cover ring-1 ring-slate-200"
+                  class="h-20 w-24 rounded-2xl object-cover shadow-sm ring-1 ring-slate-200/70"
                 />
               </td>
-              <td class="px-4 py-3">
+              <td class="px-4 py-4">
                 <button
                   type="button"
-                  class="text-left text-sm font-semibold text-slate-900 underline-offset-2 hover:underline"
+                  class="text-left text-base font-semibold text-slate-900 underline-offset-4 transition hover:text-blue-600 hover:underline"
                   @click="viewTrip(trip)"
                 >
                   {{ trip.title }}
                 </button>
-                <p class="text-xs text-slate-400">ID: {{ trip.id }}</p>
               </td>
-              <td class="px-4 py-3">{{ trip.province || trip.location || "-" }}</td>
-              <td class="px-4 py-3">{{ formatDate(trip.updatedAt) }}</td>
-              <td class="px-4 py-3">
+              <td class="px-4 py-4 max-w-[220px] text-sm text-slate-500">
+                {{ trip.description || "No description provided." }}
+              </td>
+              <td class="px-4 py-4 text-sm text-slate-600">
+                <div
+                  v-if="extractTags(trip.tags).length"
+                  class="flex flex-wrap gap-2"
+                >
+                  <span
+                    v-for="tag in extractTags(trip.tags)"
+                    :key="`${trip.id}-${tag}`"
+                    class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm"
+                  >
+                    {{ tag }}
+                  </span>
+                </div>
+                <span v-else class="text-xs text-slate-400">No tags yet</span>
+              </td>
+              <td class="px-4 py-4 text-sm text-slate-600">
+                <span
+                  v-if="formatCoordinates(trip.latitude, trip.longitude) !== '-'"
+                  class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700 shadow-sm"
+                >
+                  {{ formatCoordinates(trip.latitude, trip.longitude) }}
+                </span>
+                <span v-else class="text-xs text-slate-400">No coordinates</span>
+              </td>
+              <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-slate-500">
+                {{ formatDate(trip.updatedAt) }}
+              </td>
+              <td class="px-4 py-4">
                 <div class="flex items-center justify-end gap-2 text-xs font-semibold">
                   <button
                     type="button"
-                    class="rounded-full border border-slate-200 px-3 py-1 text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                    class="rounded-full bg-slate-100 px-4 py-1.5 text-slate-600 transition hover:bg-slate-200 hover:text-slate-900"
                     @click="openEditForm(trip)"
                   >
-                    แก้ไข
+                    Edit
                   </button>
                   <button
                     type="button"
-                    class="rounded-full border border-red-200 px-3 py-1 text-red-600 transition hover:border-red-300 hover:text-red-700"
+                    class="rounded-full bg-red-50 px-4 py-1.5 text-red-600 transition hover:bg-red-100 hover:text-red-700"
                     @click="handleDelete(trip)"
                   >
-                    ลบ
+                    Delete
                   </button>
                 </div>
               </td>
@@ -351,84 +450,84 @@ onMounted(async () => {
 
     <div
       v-if="isFormOpen"
-      class="rounded-3xl border border-slate-200 bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
+      class="rounded-3xl bg-white/95 p-6 shadow-[0_20px_50px_rgba(15,23,42,0.08)]"
     >
       <div class="mb-4 flex items-center justify-between">
         <div>
           <h2 class="text-xl font-semibold text-slate-900">
-            {{ editingTrip ? "แก้ไขปลายทาง" : "เพิ่มปลายทางใหม่" }}
+            {{ editingTrip ? "Edit destination" : "Add a new destination" }}
           </h2>
-          <p class="text-sm text-slate-500">กรอกข้อมูลของปลายทางที่คุณต้องการจัดการ</p>
+          <p class="text-sm text-slate-500">Share the details for the place you’d like to manage.</p>
         </div>
         <button
           type="button"
           class="text-sm font-semibold text-slate-500 underline-offset-2 hover:text-slate-700 hover:underline"
           @click="closeForm"
         >
-          ปิด
+          Close
         </button>
       </div>
 
       <form class="grid gap-4 md:grid-cols-2" @submit.prevent="handleSubmit">
         <label class="flex flex-col gap-1 text-sm font-medium text-slate-600">
-          ชื่อปลายทาง *
+          Destination name *
           <input
             v-model="form.title"
             type="text"
             required
-            class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
         </label>
 
         <label class="flex flex-col gap-1 text-sm font-medium text-slate-600">
-          จังหวัด *
+          Province *
           <input
             v-model="form.province"
             type="text"
             required
-            class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
         </label>
 
         <label class="md:col-span-2 flex flex-col gap-1 text-sm font-medium text-slate-600">
-          รายละเอียด
+          Description
           <textarea
             v-model="form.description"
             rows="4"
-            class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
           ></textarea>
         </label>
 
         <label class="md:col-span-2 flex flex-col gap-1 text-sm font-medium text-slate-600">
-          ลิงก์รูปภาพ (รูปแรก)
+          Primary image URL
           <input
             v-model="form.image"
             type="url"
-            class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="https://"
           />
         </label>
 
         <label class="md:col-span-2 flex flex-col gap-1 text-sm font-medium text-slate-600">
-          รูปภาพเพิ่มเติม (ใส่ลิงก์แต่ละบรรทัด)
+          Additional image URLs (one per line)
           <textarea
             v-model="additionalPhotosText"
             rows="3"
-            class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
           ></textarea>
-          <p class="text-xs text-slate-400">ใส่ลิงก์รูปภาพแต่ละบรรทัด</p>
+          <p class="text-xs text-slate-400">List one direct image link per line.</p>
         </label>
 
         <label class="md:col-span-2 flex flex-col gap-1 text-sm font-medium text-slate-600">
-          Tags (คั่นด้วยจุลภาค)
+          Tags (comma separated)
           <input
             v-model="tagsText"
             type="text"
-            class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
             placeholder="food, streetfood, bangkok"
           />
-          <p class="text-xs text-slate-400">ตัวอย่าง: food, streetfood, bangkok</p>
+          <p class="text-xs text-slate-400">Example: food, streetfood, bangkok</p>
         </label>
 
         <div class="grid grid-cols-2 gap-3">
@@ -437,7 +536,7 @@ onMounted(async () => {
             <input
               v-model="form.latitude"
               type="text"
-              class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </label>
           <label class="flex flex-col gap-1 text-sm font-medium text-slate-600">
@@ -445,7 +544,7 @@ onMounted(async () => {
             <input
               v-model="form.longitude"
               type="text"
-              class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+              class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
             />
           </label>
         </div>
@@ -453,17 +552,17 @@ onMounted(async () => {
         <div class="md:col-span-2 flex items-center justify-end gap-3">
           <button
             type="button"
-            class="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+            class="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-200 hover:text-slate-900"
             @click="closeForm"
           >
-            ยกเลิก
+            Cancel
           </button>
           <button
             type="submit"
             class="inline-flex items-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-70"
             :disabled="isSubmitting"
           >
-            {{ isSubmitting ? "กำลังบันทึก..." : "บันทึก" }}
+            {{ isSubmitting ? "Saving..." : "Save" }}
           </button>
         </div>
       </form>

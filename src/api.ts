@@ -42,7 +42,7 @@ api.interceptors.request.use(
   }
 );
 
-export async function getTrips(): Promise<Trip[]> {
+export const getTrips = async (): Promise<Trip[]> => {
   try {
     // Try /trips endpoint first
     const response = await api.get<Trip[]>("/trips");
@@ -73,7 +73,7 @@ export async function getTrips(): Promise<Trip[]> {
     // For other errors, return empty array
     return [];
   }
-}
+};
 
 export type RegisterPayload = {
   fullName: string;
@@ -86,7 +86,7 @@ export async function register(payload: RegisterPayload): Promise<{ success: boo
     const response = await api.post("/register", payload);
     return { success: true, ...response.data };
   } catch (error: any) {
-    let message = "การลงทะเบียนล้มเหลว";
+    let message = "Registration failed";
     if (error.response && error.response.data && error.response.data.message) {
       message = error.response.data.message;
     }
@@ -118,7 +118,7 @@ export async function login(payload: LoginPayload): Promise<{ success: boolean; 
     };
   } catch (error: any) {
     console.error("Login error:", error);
-    let message = "เข้าสู่ระบบไม่สำเร็จ";
+    let message = "Sign-in failed";
     if (error.response && error.response.data && error.response.data.message) {
       message = error.response.data.message;
     }
