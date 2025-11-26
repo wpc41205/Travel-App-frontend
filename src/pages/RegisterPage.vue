@@ -75,7 +75,7 @@ const handleSubmit = async () => {
 
 <template>
   <section
-    class="mx-auto flex h-[300px] w-full max-w-xl flex-col gap-3 rounded-3xl border border-slate-200 bg-white/70 px-4 py-4 shadow-lg backdrop-blur-sm"
+    class="mx-auto flex h-[300px] w-full flex-col gap-3 rounded-3xl border border-slate-200 bg-white/70 px-4 py-4 shadow-lg backdrop-blur-sm lg:w-[80%]"
   >
     <header class="space-y-3 text-center">
       <p class="text-3xl font-bold tracking-tight text-blue-500 sm:text-4xl">

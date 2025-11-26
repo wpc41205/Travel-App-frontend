@@ -5,6 +5,8 @@ const LoginPage = () => import("../pages/LoginPage.vue");
 const RegisterPage = () => import("../pages/RegisterPage.vue");
 const TripDetailPage = () => import("../pages/TripDetailPage.vue");
 const DashboardPage = () => import("../pages/dashboard.vue");
+const AboutPage = () => import("../pages/AboutPage.vue");
+const ContactPage = () => import("../pages/ContactPage.vue");
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -12,6 +14,16 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomePage,
+    },
+    {
+      path: "/about",
+      name: "about",
+      component: AboutPage,
+    },
+    {
+      path: "/contact",
+      name: "contact",
+      component: ContactPage,
     },
     {
       path: "/login",

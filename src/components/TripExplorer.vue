@@ -67,15 +67,15 @@ const showSearchNoResults = computed(
       v-else
       class="flex w-full flex-col items-center gap-6"
     >
-      <div class="relative w-full max-w-[800px]">
+      <div class="flex w-[75%] flex-row items-center justify-between">
+        <h2 v-if="!searchQuery.trim()" class="text-left text-3xl font-bold text-slate-900 sm:text-4xl">Latest Travel Guides</h2>
         <label for="trip-search" class="sr-only">ค้นหาทริป</label>
-        <input
-          id="trip-search"
-          v-model="searchQuery"
-          type="search"
-          placeholder="ค้นหาทริปตามชื่อ หมวดหมู่ หรือแท็ก..."
-          class="w-full rounded-xl border border-slate-200 bg-white/90 px-5 py-3 text-sm text-slate-700 shadow-[0_20px_40px_rgba(15,23,42,0.06)] outline-none transition focus:border-sky-300 focus:ring-2 focus:ring-sky-200 focus:ring-offset-2 focus:ring-offset-white"
-        />
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+          <input id="trip-search" v-model="searchQuery" type="search" placeholder="Search for trips" class="w-64 border border-slate-200 bg-white/90 pl-10 pr-5 py-3 text-sm text-slate-700 shadow-[0_20px_40px_rgba(15,23,42,0.06)] outline-none transition focus:border-sky-300 focus:ring-1 focus:ring-sky-200" />
+        </div>
       </div>
 
       <template v-if="hasBaseTrips">
@@ -87,10 +87,9 @@ const showSearchNoResults = computed(
           <strong class="font-semibold text-slate-600">“{{ searchQuery }}”</strong>
         </p>
 
-        <TripList
-          v-else
-          :trips="filteredTrips"
-        />
+        <div v-else class="flex w-full flex-col items-center gap-6">
+          <TripList :trips="filteredTrips" />
+        </div>
       </template>
 
       <EmptyState v-else />

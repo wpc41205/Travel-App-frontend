@@ -2,7 +2,7 @@
 
 @layer base {
   :root {
-    font-family: "Inter", "Sarabun", "Prompt", -apple-system, BlinkMacSystemFont,
+    font-family: "Adonis Web", -apple-system, BlinkMacSystemFont,
       "Segoe UI", sans-serif;
     line-height: 1.5;
     font-weight: 400;

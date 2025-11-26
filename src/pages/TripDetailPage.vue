@@ -179,7 +179,7 @@ watch(tripParam, () => {
 </script>
 
 <template>
-  <div class="mx-auto w-full max-w-5xl px-5 py-10 lg:px-0">
+  <div class="mx-auto w-full px-5 py-10 lg:w-[80%] lg:px-0">
 
     <div
       v-if="isLoading"

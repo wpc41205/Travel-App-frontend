@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import TripCard from "./TripCard.vue";
 import type { Trip } from "../api";
 
@@ -8,6 +8,8 @@ const props = defineProps<{
 }>();
 
 const selectedTags = ref<string[]>([]);
+const currentPage = ref(1);
+const tripsPerPage = 9;
 
 const normalizeTag = (tag: string) => tag.trim().toLowerCase();
 
@@ -47,23 +49,64 @@ const filteredTrips = computed(() => {
   );
 });
 
+const totalPages = computed(() => {
+  return Math.ceil(filteredTrips.value.length / tripsPerPage);
+});
+
+const paginatedTrips = computed(() => {
+  const start = (currentPage.value - 1) * tripsPerPage;
+  const end = start + tripsPerPage;
+  return filteredTrips.value.slice(start, end);
+});
+
 const handleTagFilter = (tag: string) => {
   if (selectedTags.value.includes(tag)) {
     selectedTags.value = selectedTags.value.filter((item) => item !== tag);
   } else {
     selectedTags.value = [...selectedTags.value, tag];
   }
+  // Reset to first page when filter changes
+  currentPage.value = 1;
 };
 
 const clearFilter = () => {
   selectedTags.value = [];
+  currentPage.value = 1;
 };
+
+const goToNextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+    scrollToTop();
+  }
+};
+
+const goToPreviousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+    scrollToTop();
+  }
+};
+
+const scrollToTop = () => {
+  const tripsElement = document.getElementById("trips");
+  if (tripsElement) {
+    tripsElement.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
+
+// Reset to first page when filtered trips change
+watch(filteredTrips, () => {
+  if (currentPage.value > totalPages.value) {
+    currentPage.value = 1;
+  }
+});
 </script>
 
 <template>
   <div
     id="trips"
-    class="mx-auto flex w-full max-w-5xl flex-col gap-6 sm:gap-7"
+    class="mx-auto flex w-full flex-col gap-6 sm:gap-7 lg:w-[75%]"
   >
     <div
       v-if="selectedTags.length"
@@ -98,12 +141,14 @@ const clearFilter = () => {
       </button>
     </div>
 
-    <TripCard
-      v-for="trip in filteredTrips"
-      :key="trip.id ?? trip.title ?? JSON.stringify(trip)"
-      :trip="trip"
-      @tag-click="handleTagFilter"
-    />
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <TripCard
+        v-for="trip in paginatedTrips"
+        :key="trip.id ?? trip.title ?? JSON.stringify(trip)"
+        :trip="trip"
+        @tag-click="handleTagFilter"
+      />
+    </div>
 
     <p
       v-if="filteredTrips.length === 0"
@@ -117,6 +162,61 @@ const clearFilter = () => {
         ไม่พบข้อมูลทริป
       </template>
     </p>
+
+    <!-- Pagination Controls -->
+    <div
+      v-if="filteredTrips.length > tripsPerPage"
+      class="flex items-center justify-center gap-4 pt-4"
+    >
+      <button
+        type="button"
+        :disabled="currentPage === 1"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+        @click="goToPreviousPage"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="h-4 w-4"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        <span>ก่อนหน้า</span>
+      </button>
+
+      <div class="flex items-center gap-2 text-sm text-slate-600">
+        <span>หน้า</span>
+        <span class="font-semibold text-slate-900">{{ currentPage }}</span>
+        <span>จาก</span>
+        <span class="font-semibold text-slate-900">{{ totalPages }}</span>
+      </div>
+
+      <button
+        type="button"
+        :disabled="currentPage === totalPages"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+        @click="goToNextPage"
+      >
+        <span>ถัดไป</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="h-4 w-4"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
   </div>
 </template>
 
