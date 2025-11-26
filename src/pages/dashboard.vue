@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, RouterLink } from "vue-router";
 import { getTripIdentifier } from "../utils/tripIdentifier";
 import {
   createUserTrip,
@@ -29,7 +29,6 @@ const tagsText = ref("");
 
 const form = reactive<UserTripInput>({
   title: "",
-  province: "",
   description: "",
   image: "",
   photos: [],
@@ -42,7 +41,6 @@ const hasTrips = computed(() => trips.value.length > 0);
 
 const resetForm = () => {
   form.title = "";
-  form.province = "";
   form.description = "";
   form.image = "";
   form.photos = [];
@@ -104,7 +102,6 @@ const openCreateForm = () => {
 const openEditForm = (trip: UserTrip) => {
   editingTrip.value = trip;
   form.title = trip.title ?? "";
-  form.province = (trip.province as string) || (trip.location as string) || "";
   form.description = trip.description ?? "";
   
   // Handle photos - can be string or array
@@ -178,8 +175,8 @@ const handleSubmit = async () => {
   const id = ownerId.value;
   if (!id) return;
 
-  if (!form.title.trim() || !form.province.trim()) {
-    errorMessage.value = "Please provide both the destination name and province.";
+  if (!form.title.trim()) {
+    errorMessage.value = "Please provide the destination name.";
     return;
   }
 
@@ -343,13 +340,12 @@ onMounted(async () => {
           Create, edit, or remove the trips you own from this view.
         </p>
       </div>
-      <button
-        type="button"
-        class="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300"
-        @click="openCreateForm"
+      <RouterLink
+        to="/destinations/create"
+        class="inline-flex items-center justify-center rounded-full bg-blue-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 transition-colors"
       >
         Add destination
-      </button>
+      </RouterLink>
     </header>
 
     <div class="">
@@ -480,16 +476,6 @@ onMounted(async () => {
         </label>
 
         <label class="flex flex-col gap-1 text-sm font-medium text-slate-600">
-          Province *
-          <input
-            v-model="form.province"
-            type="text"
-            required
-            class="rounded-2xl bg-white/80 px-4 py-2 text-sm text-slate-700 ring-1 ring-slate-200 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-        </label>
-
-        <label class="md:col-span-2 flex flex-col gap-1 text-sm font-medium text-slate-600">
           Description
           <textarea
             v-model="form.description"

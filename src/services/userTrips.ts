@@ -7,7 +7,6 @@ export type UserTrip = {
   id: string;
   ownerId?: Nullable<string | number>;
   title?: Nullable<string>;
-  province?: Nullable<string>;
   location?: Nullable<string>;
   description?: Nullable<string>;
   photos?: Nullable<string | string[]>;
@@ -21,7 +20,6 @@ export type UserTrip = {
 
 export type UserTripInput = {
   title: string;
-  province: string;
   description?: string;
   image?: string;
   photos?: string[];
@@ -337,6 +335,110 @@ export async function createUserTrip(ownerId: string | null, input: UserTripInpu
     console.error("Failed to create user trip", error);
     console.error("Error status:", error.response?.status);
     console.error("Error data:", error.response?.data);
+    throw error;
+  }
+}
+
+/**
+ * Create a trip with file uploads via multipart/form-data
+ * This function sends primary image, additional images, and trip data in one request
+ * @param ownerId - The authentication token
+ * @param input - Trip input data
+ * @param primaryImageFile - Optional primary image file
+ * @param additionalFiles - Optional array of additional image files
+ * @param authorId - Optional author ID (will be extracted from token if not provided)
+ * @returns Promise with the created trip
+ */
+export async function createUserTripWithFiles(
+  ownerId: string | null,
+  input: UserTripInput,
+  primaryImageFile?: File | null,
+  additionalFiles?: File[],
+  authorId?: number
+): Promise<UserTrip> {
+  let finalAuthorId = authorId;
+  
+  // If authorId not provided, try to extract from token
+  if (!finalAuthorId && ownerId) {
+    const extractedId = extractAuthorIdFromToken(ownerId);
+    finalAuthorId = extractedId !== null ? extractedId : undefined;
+    
+    // If still no authorId, try to get from backend
+    if (!finalAuthorId) {
+      const userInfo = await getUserInfoFromToken(ownerId);
+      if (userInfo) {
+        const userId = userInfo.id ?? userInfo.userId ?? userInfo.authorId;
+        finalAuthorId = userId ? Number(userId) : undefined;
+      }
+    }
+  }
+  
+  if (!finalAuthorId) {
+    throw new Error("Cannot determine authorId. Please ensure you are logged in.");
+  }
+  
+  try {
+    // Create FormData for multipart request
+    const formData = new FormData();
+    
+    // Add primary image if provided
+    if (primaryImageFile) {
+      formData.append('primaryImage', primaryImageFile);
+    }
+    
+    // Add additional images if provided
+    if (additionalFiles && additionalFiles.length > 0) {
+      additionalFiles.forEach((file) => {
+        formData.append('additionalImages', file);
+      });
+    }
+    
+    // Add trip data fields
+    formData.append('title', input.title);
+    
+    // Add authorId to FormData so backend can associate the trip with the user
+    formData.append('authorId', finalAuthorId.toString());
+    
+    if (input.description) {
+      formData.append('description', input.description);
+    }
+    
+    if (input.latitude) {
+      formData.append('latitude', input.latitude);
+    }
+    
+    if (input.longitude) {
+      formData.append('longitude', input.longitude);
+    }
+    
+    if (input.tags && Array.isArray(input.tags) && input.tags.length > 0) {
+      // Send tags as JSON string array
+      formData.append('tags', JSON.stringify(input.tags));
+    }
+    
+    // Use /trips endpoint for multipart upload (same as createUserTrip)
+    const endpoint = '/trips';
+    
+    const response = await api.post<UserTrip>(endpoint, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error("Failed to create user trip with files", error);
+    console.error("Error status:", error.response?.status);
+    console.error("Error data:", error.response?.data);
+    
+    // Log more details for debugging
+    if (error.response?.data) {
+      console.error("Error details:", JSON.stringify(error.response.data, null, 2));
+    }
+    if (error.response?.status === 500) {
+      console.error("Server error - check backend logs for details");
+    }
+    
     throw error;
   }
 }

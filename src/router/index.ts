@@ -7,6 +7,7 @@ const TripDetailPage = () => import("../pages/TripDetailPage.vue");
 const DashboardPage = () => import("../pages/dashboard.vue");
 const AboutPage = () => import("../pages/AboutPage.vue");
 const ContactPage = () => import("../pages/ContactPage.vue");
+const CreateDestinationPage = () => import("../pages/CreateDestinationPage.vue");
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -44,6 +45,11 @@ const router = createRouter({
       path: "/dashboard",
       name: "dashboard",
       component: DashboardPage,
+    },
+    {
+      path: "/destinations/create",
+      name: "create-destination",
+      component: CreateDestinationPage,
     },
   ],
   scrollBehavior() {

@@ -55,7 +55,7 @@ const closeMobileMenu = () => {
     </RouterLink>
 
     <!-- Navigation Menu -->
-    <div class="hidden items-center gap-1 md:flex">
+    <div class="hidden items-center gap-4 md:flex">
       <RouterLink
         to="/"
         :class="[
@@ -219,7 +219,7 @@ const closeMobileMenu = () => {
         <RouterLink
           v-else
           to="/login"
-          class="group inline-flex items-center gap-2 rounded-full border border-blue-500 bg-linear-to-r from-blue-500 to-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200/50 transition-all duration-200 hover:border-blue-600 hover:from-blue-600 hover:to-sky-600 hover:shadow-lg hover:shadow-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+          class="group inline-flex items-center gap-2 rounded-xl border border-blue-500 bg-linear-to-r from-blue-500 to-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-200/50 transition-all duration-200 hover:border-blue-600 hover:from-blue-600 hover:to-sky-600 hover:shadow-lg hover:shadow-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
