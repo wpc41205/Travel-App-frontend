@@ -23,13 +23,19 @@ const isSubmitting = ref(false);
 const editingTrip = ref<UserTrip | null>(null);
 const errorMessage = ref<string | null>(null);
 
+// Helper refs for form inputs
+const additionalPhotosText = ref("");
+const tagsText = ref("");
+
 const form = reactive<UserTripInput>({
   title: "",
   province: "",
   description: "",
   image: "",
+  photos: [],
   latitude: "",
   longitude: "",
+  tags: [],
 });
 
 const hasTrips = computed(() => trips.value.length > 0);
@@ -39,12 +45,17 @@ const resetForm = () => {
   form.province = "";
   form.description = "";
   form.image = "";
+  form.photos = [];
   form.latitude = "";
   form.longitude = "";
+  form.tags = [];
+  additionalPhotosText.value = "";
+  tagsText.value = "";
 };
 
 const syncOwnerId = () => {
-  ownerId.value = getAuthToken();
+  const newOwnerId = getAuthToken();
+  ownerId.value = newOwnerId;
 };
 
 watch(isAuthenticated, () => {
@@ -54,6 +65,7 @@ watch(isAuthenticated, () => {
 
 const loadTrips = async () => {
   const id = ownerId.value;
+  
   if (!id) {
     trips.value = [];
     isLoading.value = false;
@@ -61,11 +73,20 @@ const loadTrips = async () => {
   }
 
   isLoading.value = true;
+  errorMessage.value = null;
+  
   try {
-    trips.value = await getUserTrips(id);
-  } catch (error) {
-    console.error(error);
-    errorMessage.value = "ไม่สามารถโหลดข้อมูลทริปของคุณได้";
+    const fetchedTrips = await getUserTrips(id);
+    trips.value = fetchedTrips;
+  } catch (error: any) {
+    console.error("Error in loadTrips:", error);
+    const errorMsg = error.response?.data?.message || error.message || "ไม่สามารถโหลดข้อมูลทริปของคุณได้";
+    errorMessage.value = errorMsg;
+    console.error("Error details:", {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+    });
   } finally {
     isLoading.value = false;
   }
@@ -82,9 +103,38 @@ const openEditForm = (trip: UserTrip) => {
   form.title = trip.title ?? "";
   form.province = (trip.province as string) || (trip.location as string) || "";
   form.description = trip.description ?? "";
-  form.image = Array.isArray(trip.photos) ? trip.photos[0] ?? "" : "";
+  
+  // Handle photos - can be string or array
+  if (Array.isArray(trip.photos)) {
+    form.photos = trip.photos.filter((p): p is string => typeof p === "string" && p.trim() !== "");
+    form.image = trip.photos[0] ?? "";
+    // Set additional photos (skip first one as it's in image field)
+    additionalPhotosText.value = trip.photos.slice(1).join("\n");
+  } else if (typeof trip.photos === "string" && trip.photos.trim()) {
+    form.image = trip.photos;
+    form.photos = [trip.photos];
+    additionalPhotosText.value = "";
+  } else {
+    form.image = "";
+    form.photos = [];
+    additionalPhotosText.value = "";
+  }
+  
   form.latitude = (trip.latitude as string) || "";
   form.longitude = (trip.longitude as string) || "";
+  
+  // Handle tags
+  if (Array.isArray(trip.tags)) {
+    form.tags = trip.tags.filter((t): t is string => typeof t === "string" && t.trim() !== "");
+    tagsText.value = form.tags.join(", ");
+  } else if (typeof trip.tags === "string" && trip.tags.trim()) {
+    form.tags = trip.tags.split(",").map(t => t.trim()).filter(t => t);
+    tagsText.value = trip.tags;
+  } else {
+    form.tags = [];
+    tagsText.value = "";
+  }
+  
   isFormOpen.value = true;
 };
 
@@ -92,6 +142,33 @@ const closeForm = () => {
   isFormOpen.value = false;
   editingTrip.value = null;
   resetForm();
+};
+
+// Helper function to extract authorId from token if it's a JWT
+const extractAuthorId = (token: string | null): number | undefined => {
+  if (!token) return undefined;
+  
+  try {
+    // Try to decode JWT token (if it's a JWT)
+    const parts = token.split(".");
+    if (parts.length === 3 && parts[1]) {
+      const decoded = atob(parts[1]);
+      if (decoded) {
+        const payload = JSON.parse(decoded);
+        if (payload.userId || payload.id || payload.user_id) {
+          return Number(payload.userId || payload.id || payload.user_id);
+        }
+      }
+    }
+  } catch (e) {
+    // Not a JWT or can't decode, try to parse as number directly
+    const numId = Number(token);
+    if (!isNaN(numId)) {
+      return numId;
+    }
+  }
+  
+  return undefined;
 };
 
 const handleSubmit = async () => {
@@ -107,10 +184,32 @@ const handleSubmit = async () => {
   errorMessage.value = null;
 
   try {
+    // Process additional photos from textarea
+    const additionalPhotos = additionalPhotosText.value
+      .split("\n")
+      .map(line => line.trim())
+      .filter(line => line && line.startsWith("http"));
+    
+    // Combine image and additional photos
+    form.photos = [];
+    if (form.image?.trim()) {
+      form.photos.push(form.image.trim());
+    }
+    form.photos.push(...additionalPhotos);
+    
+    // Process tags from text input
+    form.tags = tagsText.value
+      .split(",")
+      .map(tag => tag.trim())
+      .filter(tag => tag);
+    
+    // Try to extract authorId from token
+    const authorId = extractAuthorId(id) || form.authorId;
+    
     if (editingTrip.value) {
-      await updateUserTrip(id, editingTrip.value.id, form);
+      await updateUserTrip(id, editingTrip.value.id, form, authorId);
     } else {
-      await createUserTrip(id, form);
+      await createUserTrip(id, form, authorId);
     }
     await loadTrips();
     closeForm();
@@ -157,6 +256,13 @@ const formatDate = (value?: string | number | Date | null) => {
 
 onMounted(async () => {
   syncOwnerId();
+  
+  // Wait a bit to ensure token is loaded
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // Sync again in case token was loaded asynchronously
+  syncOwnerId();
+  
   await loadTrips();
 });
 </script>
@@ -293,14 +399,36 @@ onMounted(async () => {
           ></textarea>
         </label>
 
-        <label class="flex flex-col gap-1 text-sm font-medium text-slate-600">
-          ลิงก์รูปภาพ
+        <label class="md:col-span-2 flex flex-col gap-1 text-sm font-medium text-slate-600">
+          ลิงก์รูปภาพ (รูปแรก)
           <input
             v-model="form.image"
             type="url"
             class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
             placeholder="https://"
           />
+        </label>
+
+        <label class="md:col-span-2 flex flex-col gap-1 text-sm font-medium text-slate-600">
+          รูปภาพเพิ่มเติม (ใส่ลิงก์แต่ละบรรทัด)
+          <textarea
+            v-model="additionalPhotosText"
+            rows="3"
+            class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            placeholder="https://example.com/image1.jpg&#10;https://example.com/image2.jpg"
+          ></textarea>
+          <p class="text-xs text-slate-400">ใส่ลิงก์รูปภาพแต่ละบรรทัด</p>
+        </label>
+
+        <label class="md:col-span-2 flex flex-col gap-1 text-sm font-medium text-slate-600">
+          Tags (คั่นด้วยจุลภาค)
+          <input
+            v-model="tagsText"
+            type="text"
+            class="rounded-2xl border border-slate-200 px-4 py-2 text-sm text-slate-700 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+            placeholder="food, streetfood, bangkok"
+          />
+          <p class="text-xs text-slate-400">ตัวอย่าง: food, streetfood, bangkok</p>
         </label>
 
         <div class="grid grid-cols-2 gap-3">

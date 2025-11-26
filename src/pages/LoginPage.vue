@@ -66,6 +66,12 @@ const handleSubmit = async () => {
     return;
   }
 
+  if (!token) {
+    console.warn("No token received from API response");
+    serverError.value = "ไม่ได้รับ token จากเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง";
+    return;
+  }
+
   saveAuthState(token, form.remember);
   syncAuthState();
 

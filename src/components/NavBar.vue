@@ -27,7 +27,7 @@ const handleLogout = () => {
         to="/dashboard"
         class="hidden rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 sm:inline-flex"
       >
-        จัดการปลายทาง
+        สร้างทริป +
       </RouterLink>
 
       <div class="flex flex-col items-end gap-1">

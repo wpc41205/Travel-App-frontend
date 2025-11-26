@@ -25,6 +25,7 @@ function persistToken(token: string | null, remember: boolean) {
   window.sessionStorage.removeItem(AUTH_KEY);
 
   if (!token) {
+    console.warn("No token provided to persistToken");
     return;
   }
 
