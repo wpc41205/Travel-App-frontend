@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { getTrips, type Trip } from "../api";
 import { matchesTripIdentifier } from "../utils/tripIdentifier";
+import { getFirstImageUrl, getAllImageUrls } from "../utils/imageUrl";
 
 type Nullable<T> = T | null | undefined;
 
@@ -11,6 +12,18 @@ const route = useRoute();
 const trip = ref<Trip | null>(null);
 const isLoading = ref(true);
 const errorMessage = ref<string | null>(null);
+const imageErrors = ref<Record<string, boolean>>({});
+
+const handleImageError = (url: string, element: HTMLImageElement) => {
+  // Mark as error and show placeholder - no need for extra fetch requests
+  imageErrors.value[url] = true;
+  element.style.opacity = '0';
+  element.style.position = 'absolute';
+};
+
+const handleImageLoad = (url: string) => {
+  imageErrors.value[url] = false;
+};
 
 const tripParam = computed(() => route.params.tripId as string);
 
@@ -22,63 +35,16 @@ const normalizeWhitespace = (text: string): string =>
     .replace(/\s+/g, " ")
     .trim();
 
-const getHeroImage = (currentTrip: Trip): string | null => {
-  const photos = currentTrip?.photos;
-
-  if (Array.isArray(photos) && photos.length > 0) {
-    const first = (photos as unknown[]).find(
-      (item): item is string => typeof item === "string" && item.trim() !== ""
-    );
-    if (first) {
-      return first;
-    }
-  }
-
-  if (typeof photos === "string" && photos.trim() !== "") {
-    try {
-      const parsed = JSON.parse(photos) as unknown;
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const first = parsed.find(
-          (item): item is string => typeof item === "string" && item.trim() !== ""
-        );
-        if (first) {
-          return first;
-        }
-      }
-    } catch {
-      if (photos.startsWith("http")) {
-        return photos;
-      }
-    }
-  }
-
-  return null;
-};
-
-const heroImage = computed<string | null>(() =>
-  trip.value ? getHeroImage(trip.value) : null
-);
+const heroImage = computed<string | null>(() => {
+  if (!trip.value) return null;
+  return getFirstImageUrl(trip.value.photos);
+});
 
 const additionalImages = computed<string[]>(() => {
   if (!trip.value) return [];
-
-  const photos = trip.value.photos;
-  let list: string[] = [];
-
-  if (Array.isArray(photos)) {
-    list = photos.filter((item): item is string => typeof item === "string");
-  } else if (typeof photos === "string" && photos.trim() !== "") {
-    try {
-      const parsed = JSON.parse(photos) as unknown;
-      if (Array.isArray(parsed)) {
-        list = parsed.filter((item): item is string => typeof item === "string");
-      }
-    } catch {
-      // ignore invalid json
-    }
-  }
-
-  return list.filter(Boolean);
+  const allImages = getAllImageUrls(trip.value.photos);
+  // Skip the first image as it's shown as hero image
+  return allImages.slice(1);
 });
 
 const parseList = (value: Nullable<string | string[]>): string[] => {
@@ -164,14 +130,22 @@ const fetchTrip = async () => {
   try {
     const trips = await getTrips();
     const found = trips.find((item) => matchesTripIdentifier(item, tripParam.value));
-
+    
     if (found) {
       trip.value = found;
+      // Debug: Log photos data to see what we're working with
+      console.log("[TripDetailPage] Trip photos data:", {
+        photos: found.photos,
+        type: typeof found.photos,
+        isArray: Array.isArray(found.photos),
+        firstImage: heroImage.value,
+        allImages: additionalImages.value,
+      });
     } else {
-      errorMessage.value = "We couldn’t find the trip you’re looking for.";
+      errorMessage.value = "We couldn't find the trip you're looking for.";
     }
   } catch (error) {
-    console.error(error);
+    console.error("[TripDetailPage] Error fetching trip:", error);
     errorMessage.value = "Something went wrong while loading this trip.";
   } finally {
     isLoading.value = false;
@@ -229,14 +203,34 @@ watch(tripParam, () => {
 
       <div
         v-if="heroImage"
-        class="group relative mx-auto max-w-3xl overflow-hidden bg-slate-100 ring-1 ring-slate-200/70"
+        class="group relative mx-auto max-w-3xl overflow-hidden bg-slate-100 ring-1 ring-slate-200/70 aspect-video"
       >
         <img
           :src="heroImage"
           :alt="`Trip illustration for ${trip.title}`"
-          class="block aspect-video w-full max-h-[320px] object-cover transition duration-700 group-hover:scale-[1.03]"
+          class="block w-full h-full max-h-[320px] object-cover transition duration-700 group-hover:scale-[1.03]"
           loading="lazy"
+          @error="(e) => { if (heroImage) handleImageError(heroImage, e.target as HTMLImageElement); }"
+          @load="() => { if (heroImage) handleImageLoad(heroImage); }"
         />
+        <div
+          v-if="heroImage && imageErrors[heroImage]"
+          class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300"
+        >
+          <div class="text-center px-4">
+            <svg class="mx-auto h-12 w-12 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            <p class="text-slate-500 text-sm font-medium mb-1">ไม่สามารถโหลดรูปภาพ</p>
+            <p class="text-slate-400 text-xs">ตรวจสอบการตั้งค่า Supabase Storage Bucket</p>
+          </div>
+        </div>
+      </div>
+      <div
+        v-else
+        class="group relative mx-auto max-w-3xl overflow-hidden bg-slate-100 ring-1 ring-slate-200/70 flex items-center justify-center aspect-video"
+      >
+        <p class="text-slate-400 text-sm">ไม่มีรูปภาพ</p>
       </div>
 
       <section
@@ -259,14 +253,27 @@ watch(tripParam, () => {
         <figure
           v-for="(image, index) in additionalImages"
           :key="`detail-image-${index}`"
-          class="overflow-hidden bg-slate-100 shadow-sm ring-1 ring-slate-200/70"
+          class="relative overflow-hidden bg-slate-100 shadow-sm ring-1 ring-slate-200/70 aspect-4/3"
         >
           <img
             :src="image"
             :alt="`Additional photo of ${trip.title}`"
-            class="block aspect-4/3 w-full max-h-48 object-cover transition duration-500 hover:scale-105"
+            class="block w-full h-full max-h-48 object-cover transition duration-500 hover:scale-105"
             loading="lazy"
+            @error="(e) => handleImageError(image, e.target as HTMLImageElement)"
+            @load="() => handleImageLoad(image)"
           />
+          <div
+            v-if="imageErrors[image]"
+            class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-200 to-slate-300"
+          >
+            <div class="text-center px-2">
+              <svg class="mx-auto h-8 w-8 text-slate-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <p class="text-slate-500 text-xs">ไม่สามารถโหลด</p>
+            </div>
+          </div>
         </figure>
       </section>
 

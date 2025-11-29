@@ -331,7 +331,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="mx-auto flex w-full flex-col gap-8 px-4 py-8 lg:w-[80%] lg:px-0">
+  <section class="mx-auto flex w-full flex-col gap-8 px-4 py-8 lg:w-[75%] lg:px-0">
     <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p class="text-sm uppercase tracking-[0.3em] text-slate-400">Dashboard</p>
