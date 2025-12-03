@@ -30,7 +30,7 @@ const closeMobileMenu = () => {
 
 <template>
   <nav
-    class="relative mx-auto flex w-full items-center justify-between rounded-2xl border border-slate-200/80 bg-white/80 backdrop-blur-md px-4 py-3 shadow-lg shadow-slate-200/50 transition-all duration-300 sm:px-6 lg:w-[70%]"
+    class="top-0 z-[9999] mx-auto flex w-full items-center justify-between rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-md px-4 py-3 shadow-lg shadow-slate-200/50 transition-all duration-300 sm:px-6 lg:w-[70%]"
   >
     <RouterLink
       to="/"
@@ -242,7 +242,7 @@ const closeMobileMenu = () => {
     <!-- Mobile Menu -->
     <div
       v-if="isMobileMenuOpen"
-      class="absolute left-0 right-0 top-full mt-2 mx-4 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-md shadow-xl shadow-slate-200/50 md:hidden"
+      class="absolute left-0 right-0 top-full z-[9999] mt-2 mx-4 rounded-2xl border border-slate-200/80 bg-white/95 backdrop-blur-md shadow-xl shadow-slate-200/50 md:hidden"
     >
       <div class="flex flex-col p-2">
         <RouterLink

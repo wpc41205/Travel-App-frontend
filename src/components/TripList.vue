@@ -106,24 +106,24 @@ watch(filteredTrips, () => {
 <template>
   <div
     id="trips"
-    class="mx-auto flex w-full flex-col gap-6 sm:gap-7 lg:w-[75%]"
+    class="mx-auto flex w-full flex-col gap-6 sm:gap-7"
   >
     <div
       v-if="selectedTags.length"
-      class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 px-5 py-3 text-sm text-sky-700"
+      class="flex flex-col gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3 text-sm text-sky-700 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:px-5"
     >
       <div class="flex flex-wrap items-center gap-2">
-        <span>Filtering by tags</span>
+        <span class="font-medium">Filtering by tags:</span>
         <ul class="flex flex-wrap items-center gap-2">
           <li
             v-for="tag in selectedTags"
             :key="tag"
-            class="inline-flex items-center gap-1 rounded-full border border-sky-200 px-3 py-1 text-xs font-semibold text-sky-800"
+            class="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-white px-3 py-1 text-xs font-semibold text-sky-800 shadow-sm transition hover:border-sky-300"
           >
             {{ tag }}
             <button
               type="button"
-              class="inline-flex h-4 w-4 items-center justify-center rounded-full text-black"
+              class="inline-flex h-4 w-4 items-center justify-center rounded-full text-sky-600 transition hover:text-sky-800"
               aria-label="Remove tag"
               @click="handleTagFilter(tag)"
             >
@@ -134,14 +134,14 @@ watch(filteredTrips, () => {
       </div>
       <button
         type="button"
-        class="inline-flex items-center gap-1 rounded-full border border-sky-200 px-3 py-1 text-xs font-semibold text-sky-600 transition hover:border-sky-300 hover:bg-white/80"
+        class="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-white px-3 py-1 text-xs font-semibold text-sky-600 transition hover:border-sky-300 hover:bg-sky-50"
         @click="clearFilter"
       >
         Clear filters
       </button>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-7">
       <TripCard
         v-for="trip in paginatedTrips"
         :key="trip.id ?? trip.title ?? JSON.stringify(trip)"
@@ -152,7 +152,7 @@ watch(filteredTrips, () => {
 
     <p
       v-if="filteredTrips.length === 0"
-      class="rounded-2xl border border-slate-200 bg-white/80 px-5 py-6 text-center text-sm text-slate-500"
+      class="rounded-2xl border border-slate-200 bg-white/80 px-5 py-6 text-center text-sm text-slate-500 shadow-sm"
     >
       <template v-if="selectedTags.length">
         No trips match the tags
@@ -166,12 +166,12 @@ watch(filteredTrips, () => {
     <!-- Pagination Controls -->
     <div
       v-if="filteredTrips.length > tripsPerPage"
-      class="flex items-center justify-center gap-4 pt-4"
+      class="flex flex-row flex-wrap items-center justify-center gap-3 pt-4 sm:gap-4"
     >
       <button
         type="button"
         :disabled="currentPage === 1"
-        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
         @click="goToPreviousPage"
       >
         <svg
@@ -186,7 +186,7 @@ watch(filteredTrips, () => {
         >
           <polyline points="15 18 9 12 15 6" />
         </svg>
-        <span>Previous</span>
+        <span class="hidden sm:inline">Previous</span>
       </button>
 
       <div class="flex items-center gap-2 text-sm text-slate-600">
@@ -199,10 +199,10 @@ watch(filteredTrips, () => {
       <button
         type="button"
         :disabled="currentPage === totalPages"
-        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400 disabled:cursor-not-allowed disabled:opacity-50"
         @click="goToNextPage"
       >
-        <span>Next</span>
+        <span class="hidden sm:inline">Next</span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"

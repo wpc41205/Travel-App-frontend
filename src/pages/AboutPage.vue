@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <section class="mx-auto w-full px-4 pt-0 pb-12 sm:px-6 sm:pt-0 sm:pb-16 lg:w-[80%]">
+  <section class="mx-auto w-full px-4 pt-0 pb-12 sm:px-6 sm:pt-0 sm:pb-16 lg:w-[60%]">
     <div class="rounded-3xl border border-slate-200 bg-white/90 p-8 shadow-lg sm:p-12">
       <header class="mb-12 text-center">
         <h1 class="mb-4 text-4xl font-bold text-slate-900 sm:text-5xl">
