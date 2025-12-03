@@ -54,86 +54,85 @@ const closeMobileMenu = () => {
       </span>
     </RouterLink>
 
-    <!-- Navigation Menu -->
-    <div class="hidden items-center gap-4 md:flex">
-      <RouterLink
-        to="/"
-        :class="[
-          'group relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-          isActive('/')
-            ? 'bg-blue-50 text-blue-600'
-            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-        ]"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="h-4 w-4"
-        >
-          <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-          <polyline points="9 22 9 12 15 12 15 22" />
-        </svg>
-        <span>Home</span>
-      </RouterLink>
-
-      <RouterLink
-        to="/about"
-        :class="[
-          'group relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-          isActive('/about')
-            ? 'bg-blue-50 text-blue-600'
-            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-        ]"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="h-4 w-4"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 16v-4" />
-          <path d="M12 8h.01" />
-        </svg>
-        <span>About</span>
-      </RouterLink>
-
-      <RouterLink
-        to="/contact"
-        :class="[
-          'group relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-          isActive('/contact')
-            ? 'bg-blue-50 text-blue-600'
-            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-        ]"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="h-4 w-4"
-        >
-          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-          <polyline points="22,6 12,13 2,6" />
-        </svg>
-        <span>Contact</span>
-      </RouterLink>
-    </div>
-
     <div class="flex items-center gap-3">
+      <!-- Navigation Menu -->
+      <div class="hidden items-center gap-4 md:flex">
+        <RouterLink
+          to="/"
+          :class="[
+            'group relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+            isActive('/')
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          ]"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-4 w-4"
+          >
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+          <span>Home</span>
+        </RouterLink>
+
+        <RouterLink
+          to="/about"
+          :class="[
+            'group relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+            isActive('/about')
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          ]"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-4 w-4"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 16v-4" />
+            <path d="M12 8h.01" />
+          </svg>
+          <span>About</span>
+        </RouterLink>
+
+        <RouterLink
+          to="/contact"
+          :class="[
+            'group relative flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+            isActive('/contact')
+              ? 'bg-blue-50 text-blue-600'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          ]"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-4 w-4"
+          >
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+            <polyline points="22,6 12,13 2,6" />
+          </svg>
+          <span>Contact</span>
+        </RouterLink>
+      </div>
       <!-- Mobile Menu Button -->
       <button
         type="button"

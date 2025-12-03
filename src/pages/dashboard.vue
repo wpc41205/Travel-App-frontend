@@ -11,6 +11,7 @@ import {
   type UserTripInput,
 } from "../services/userTrips";
 import { getAuthToken, useAuth } from "../composables/useAuth";
+import ConfirmDialog from "../components/ConfirmDialog.vue";
 
 const router = useRouter();
 const { isAuthenticated } = useAuth();
@@ -22,6 +23,8 @@ const isFormOpen = ref(false);
 const isSubmitting = ref(false);
 const editingTrip = ref<UserTrip | null>(null);
 const errorMessage = ref<string | null>(null);
+const showDeleteConfirm = ref(false);
+const tripToDelete = ref<UserTrip | null>(null);
 
 // Helper refs for form inputs
 const additionalPhotosText = ref("");
@@ -191,20 +194,40 @@ const handleSubmit = async () => {
   }
 };
 
-const handleDelete = async (trip: UserTrip) => {
+const handleDelete = (trip: UserTrip) => {
+  tripToDelete.value = trip;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDelete = async () => {
   const id = ownerId.value;
-  if (!id) return;
-  const confirmed = window.confirm(`Delete the trip "${trip.title}"?`);
-  if (!confirmed) return;
+  const trip = tripToDelete.value;
+  
+  if (!id || !trip) return;
 
   try {
     await deleteUserTrip(id, trip.id);
     await loadTrips();
+    tripToDelete.value = null;
   } catch (error) {
     console.error(error);
-    errorMessage.value = "We couldn’t delete this trip. Please try again.";
+    errorMessage.value = "We couldn't delete this trip. Please try again.";
+  } finally {
+    showDeleteConfirm.value = false;
   }
 };
+
+const cancelDelete = () => {
+  tripToDelete.value = null;
+  showDeleteConfirm.value = false;
+};
+
+const deleteConfirmMessage = computed(() => {
+  if (!tripToDelete.value || !tripToDelete.value.title) {
+    return "";
+  }
+  return `Delete the trip "${tripToDelete.value.title}"?`;
+});
 
 const viewTrip = (trip: UserTrip) => {
   const identifier = getTripIdentifier(trip);
@@ -539,6 +562,19 @@ onMounted(async () => {
 
       <p v-if="errorMessage" class="mt-3 text-sm text-red-500">{{ errorMessage }}</p>
     </div>
+
+    <ConfirmDialog
+      :is-open="showDeleteConfirm"
+      title=""
+      :message="deleteConfirmMessage"
+      confirm-text="OK"
+      cancel-text="Cancel"
+      confirm-button-class="bg-[#8B4513] hover:bg-[#654321] text-white border border-white"
+      cancel-button-class="bg-orange-100 hover:bg-orange-200 text-orange-800"
+      @confirm="confirmDelete"
+      @cancel="cancelDelete"
+      @close="cancelDelete"
+    />
   </section>
 </template>
 
