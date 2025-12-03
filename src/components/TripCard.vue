@@ -21,18 +21,26 @@ const handleTagClick = (tag: string) => {
   emit("tagClick", tag);
 };
 
+const cleanTag = (tag: string): string => {
+  // Remove special characters like brackets, quotes, etc. and keep only text
+  return tag
+    .replace(/[\[\]""''(){}]/g, "") // Remove brackets, quotes, parentheses, braces
+    .trim();
+};
+
 const parseList = (value: Nullable<string | string[]>): string[] => {
   if (!value) return [];
   if (Array.isArray(value)) {
     return value
       .filter((item): item is string => typeof item === "string")
+      .map((item) => cleanTag(item))
       .filter((item) => item.trim() !== "");
   }
   if (typeof value === "string") {
     return value
       .split(/[,|]/)
-      .map((item) => item.trim())
-      .filter((item) => item !== "");
+      .map((item) => cleanTag(item))
+      .filter((item) => item.trim() !== "");
   }
   return [];
 };

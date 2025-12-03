@@ -317,6 +317,12 @@ const formatDate = (value?: string | number | Date | null) => {
   }
 };
 
+const truncateDescription = (text: string | null | undefined, maxLength: number = 80): string => {
+  if (!text) return "No description provided.";
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength).trim() + "...";
+};
+
 onMounted(async () => {
   syncOwnerId();
   
@@ -391,7 +397,7 @@ onMounted(async () => {
                 </button>
               </td>
               <td class="px-4 py-4 max-w-[220px] text-sm text-slate-500">
-                {{ trip.description || "No description provided." }}
+                {{ truncateDescription(trip.description) }}
               </td>
               <td class="px-4 py-4 text-sm text-slate-600">
                 <div
