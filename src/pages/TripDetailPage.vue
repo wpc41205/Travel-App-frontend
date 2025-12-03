@@ -170,6 +170,28 @@ watch(tripParam, () => {
 
 <template>
   <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 py-10 text-center">
+    <!-- Back to Home Button -->
+    <div class="flex justify-start">
+      <router-link
+        to="/"
+        class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 hover:shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-slate-400"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          class="h-4 w-4"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        <span>Back to Home</span>
+      </router-link>
+    </div>
+
     <div
       v-if="isLoading"
     >
@@ -200,7 +222,7 @@ watch(tripParam, () => {
         >
           {{ trip.category }}
         </p>
-        <h1 class="text-3xl font-semibold text-slate-900 sm:text-4xl">
+        <h1 class="text-3xl font-semibold text-slate-900 sm:text-4xl max-w-4xl">
           {{ trip.title }}
         </h1>
         <p v-if="subtitleText" class="text-lg font-medium text-sky-500 max-w-2xl">
@@ -210,12 +232,12 @@ watch(tripParam, () => {
 
       <div
         v-if="heroImage"
-        class="group relative mx-auto max-w-3xl overflow-hidden bg-slate-100 ring-1 ring-slate-200/70 aspect-video"
+        class="group relative mx-auto w-full max-w-4xl overflow-hidden bg-slate-100"
       >
         <img
           :src="heroImage"
           :alt="`Trip illustration for ${trip.title}`"
-          class="block w-full h-full max-h-[320px] object-cover transition duration-700 group-hover:scale-[1.03]"
+          class="block w-full h-auto transition duration-700 group-hover:scale-[1.03]"
           loading="lazy"
           @error="(e) => { if (heroImage) handleImageError(heroImage, e.target as HTMLImageElement); }"
           @load="() => { if (heroImage) handleImageLoad(heroImage); }"
@@ -235,7 +257,7 @@ watch(tripParam, () => {
       </div>
       <div
         v-else
-        class="group relative mx-auto max-w-3xl overflow-hidden bg-slate-100 ring-1 ring-slate-200/70 flex items-center justify-center aspect-video"
+        class="group relative mx-auto w-full max-w-4xl overflow-hidden bg-slate-100 ring-1 ring-slate-200/70 flex items-center justify-center aspect-video"
       >
         <p class="text-slate-400 text-sm">ไม่มีรูปภาพ</p>
       </div>
@@ -265,7 +287,7 @@ watch(tripParam, () => {
           <img
             :src="image"
             :alt="`Additional photo of ${trip.title}`"
-            class="block w-full h-full max-h-48 object-cover transition duration-500 hover:scale-105"
+            class="relative overflow-hidden bg-slate-100 shadow-sm ring-1 ring-slate-200/70 aspect-4/3"
             loading="lazy"
             @error="(e) => handleImageError(image, e.target as HTMLImageElement)"
             @load="() => handleImageLoad(image)"
