@@ -199,8 +199,18 @@ const handleSubmit = async (event: Event) => {
       tags: tagsArray.length > 0 ? tagsArray.join(", ") : undefined,
       latitude: (typeof form.latitude === "string" && form.latitude.trim()) ? Number(form.latitude.trim()) : undefined,
       longitude: (typeof form.longitude === "string" && form.longitude.trim()) ? Number(form.longitude.trim()) : undefined,
-      ...(primaryImage.value && { primaryImage: primaryImage.value }),
-      ...(additionalImages.value.length > 0 && { additionalImages: additionalImages.value }),
+      // If new image is selected, use it; otherwise, keep existing image URL
+      ...(primaryImage.value 
+        ? { primaryImage: primaryImage.value } 
+        : existingPrimaryImageUrl.value 
+          ? { existingPrimaryImageUrl: existingPrimaryImageUrl.value } 
+          : {}),
+      // If new additional images are selected, use them; otherwise, keep existing image URLs
+      ...(additionalImages.value.length > 0 
+        ? { additionalImages: additionalImages.value } 
+        : existingAdditionalImageUrls.value.length > 0 
+          ? { existingAdditionalImageUrls: existingAdditionalImageUrls.value } 
+          : {}),
     };
 
     const { success, message } = await updateDestination(trip.value.id, payload);

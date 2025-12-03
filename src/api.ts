@@ -186,6 +186,8 @@ export type UpdateDestinationPayload = {
   description?: string;
   primaryImage?: File;
   additionalImages?: File[];
+  existingPrimaryImageUrl?: string; // URL of existing primary image if not changing
+  existingAdditionalImageUrls?: string[]; // URLs of existing additional images if not changing
   tags?: string;
   latitude?: string | number;
   longitude?: string | number;
@@ -558,14 +560,37 @@ export async function updateDestination(
       formData.append("description", payload.description);
     }
     
+    // Handle primary image
     if (payload.primaryImage) {
       formData.append("primaryImage", payload.primaryImage);
+    } else if (payload.existingPrimaryImageUrl) {
+      // If no new primary image, preserve existing one by sending its URL
+      formData.append("existingPrimaryImageUrl", payload.existingPrimaryImageUrl);
     }
     
+    // Handle additional images
     if (payload.additionalImages && payload.additionalImages.length > 0) {
       payload.additionalImages.forEach((image) => {
         formData.append("additionalImages", image);
       });
+    } else if (payload.existingAdditionalImageUrls && payload.existingAdditionalImageUrls.length > 0) {
+      // If no new additional images, preserve existing ones by sending their URLs
+      payload.existingAdditionalImageUrls.forEach((url) => {
+        formData.append("existingAdditionalImageUrls", url);
+      });
+    }
+    
+    // Also send all existing photos as 'photos' field to ensure backend preserves them
+    // This matches the Trip type structure
+    if (payload.existingPrimaryImageUrl || payload.existingAdditionalImageUrls?.length) {
+      const allPhotos = [
+        ...(payload.existingPrimaryImageUrl ? [payload.existingPrimaryImageUrl] : []),
+        ...(payload.existingAdditionalImageUrls || [])
+      ];
+      if (allPhotos.length > 0) {
+        // Send as JSON string array
+        formData.append("photos", JSON.stringify(allPhotos));
+      }
     }
     
     if (payload.tags) {
