@@ -181,6 +181,17 @@ export type CreateDestinationPayload = {
   authorId?: number;
 };
 
+export type UpdateDestinationPayload = {
+  name: string; // Will be sent as 'title' to backend
+  description?: string;
+  primaryImage?: File;
+  additionalImages?: File[];
+  tags?: string;
+  latitude?: string | number;
+  longitude?: string | number;
+  authorId?: number;
+};
+
 export async function createDestination(payload: CreateDestinationPayload): Promise<{ success: boolean; message?: string; data?: any }> {
   try {
     // Get token first
@@ -399,6 +410,198 @@ export async function createDestination(payload: CreateDestinationPayload): Prom
     let message = "Failed to create destination";
     if (error.response && error.response.data) {
       // Try to get error message from various possible formats
+      message = error.response.data.message || 
+                error.response.data.error || 
+                error.response.data.errors?.join?.(", ") ||
+                JSON.stringify(error.response.data) ||
+                message;
+    }
+    return { success: false, message };
+  }
+}
+
+export async function updateDestination(
+  tripId: string | number,
+  payload: UpdateDestinationPayload
+): Promise<{ success: boolean; message?: string; data?: any }> {
+  try {
+    // Get token first
+    const AUTH_KEY = "authToken";
+    const token = localStorage.getItem(AUTH_KEY) || sessionStorage.getItem(AUTH_KEY);
+    
+    // Extract authorId using the same method as createDestination
+    let authorId: number | undefined = payload.authorId;
+    
+    if (!authorId && token && token !== "__authenticated__") {
+      // Helper function to extract authorId from token (same as createDestination)
+      const extractAuthorIdFromToken = (token: string | null): number | null => {
+        if (!token || token === "__authenticated__") {
+          return null;
+        }
+        
+        try {
+          const parts = token.split(".");
+          if (parts.length === 3 && parts[1]) {
+            const decoded = atob(parts[1]);
+            if (decoded) {
+              const tokenPayload = JSON.parse(decoded);
+              const extractedId = tokenPayload.userId || 
+                                  tokenPayload.id || 
+                                  tokenPayload.user_id || 
+                                  tokenPayload.authorId ||
+                                  tokenPayload.sub ||
+                                  tokenPayload.user?.id ||
+                                  tokenPayload.userId ||
+                                  tokenPayload.user?.userId;
+              
+              if (extractedId) {
+                const numId = Number(extractedId);
+                if (!isNaN(numId)) {
+                  return numId;
+                }
+              }
+            }
+          } else {
+            const numId = Number(token);
+            if (!isNaN(numId)) {
+              return numId;
+            }
+          }
+        } catch (e) {
+          const numId = Number(token);
+          if (!isNaN(numId)) {
+            return numId;
+          }
+        }
+        
+        return null;
+      };
+      
+      authorId = extractAuthorIdFromToken(token) ?? undefined;
+      
+      // If still no authorId, try to get from backend
+      if (!authorId) {
+        const extractEmailFromToken = (token: string | null): string | null => {
+          if (!token || token === "__authenticated__") return null;
+          try {
+            const parts = token.split(".");
+            if (parts.length === 3 && parts[1]) {
+              const decoded = atob(parts[1]);
+              if (decoded) {
+                const tokenPayload = JSON.parse(decoded);
+                return tokenPayload.sub || tokenPayload.email || null;
+              }
+            }
+          } catch (e) {
+            console.error("Error extracting email from token:", e);
+          }
+          return null;
+        };
+        
+        const email = extractEmailFromToken(token);
+        if (email) {
+          const endpointsToTry = [
+            `/users/email/${encodeURIComponent(email)}`,
+            `/users?email=${encodeURIComponent(email)}`,
+            "/users/me",
+            "/auth/me",
+            "/user/me",
+          ];
+          
+          for (const endpoint of endpointsToTry) {
+            try {
+              const userInfo = await api.get(endpoint);
+              let userId: number | undefined;
+              
+              if (userInfo.data && typeof userInfo.data === 'object' && !Array.isArray(userInfo.data)) {
+                userId = userInfo.data.id || userInfo.data.userId || userInfo.data.authorId;
+              }
+              
+              if (!userId && userInfo.data?.data) {
+                userId = userInfo.data.data.id || userInfo.data.data.userId || userInfo.data.data.authorId;
+              }
+              
+              if (!userId && Array.isArray(userInfo.data) && userInfo.data.length > 0) {
+                const firstUser = userInfo.data[0];
+                userId = firstUser?.id || firstUser?.userId || firstUser?.authorId;
+              }
+              
+              if (userId) {
+                authorId = Number(userId);
+                break;
+              }
+            } catch (error: any) {
+              // Continue to next endpoint
+            }
+          }
+        }
+      }
+    }
+    
+    // Backend requires authorId - return error if not found
+    if (!authorId) {
+      return { 
+        success: false, 
+        message: "Cannot determine authorId. Please ensure you are logged in." 
+      };
+    }
+    
+    const formData = new FormData();
+    
+    // Backend expects 'title' not 'name'
+    formData.append("title", payload.name);
+    
+    // Add authorId to FormData (REQUIRED by backend)
+    formData.append("authorId", authorId.toString());
+    
+    if (payload.description) {
+      formData.append("description", payload.description);
+    }
+    
+    if (payload.primaryImage) {
+      formData.append("primaryImage", payload.primaryImage);
+    }
+    
+    if (payload.additionalImages && payload.additionalImages.length > 0) {
+      payload.additionalImages.forEach((image) => {
+        formData.append("additionalImages", image);
+      });
+    }
+    
+    if (payload.tags) {
+      const tagsArray = payload.tags.split(",").map(t => t.trim()).filter(t => t);
+      if (tagsArray.length > 0) {
+        formData.append("tags", JSON.stringify(tagsArray));
+      }
+    }
+    
+    if (payload.latitude !== undefined && payload.latitude !== null && payload.latitude !== "") {
+      formData.append("latitude", String(payload.latitude));
+    }
+    
+    if (payload.longitude !== undefined && payload.longitude !== null && payload.longitude !== "") {
+      formData.append("longitude", String(payload.longitude));
+    }
+    
+    // Use PUT /trips/{tripId} endpoint for update
+    const response = await api.put(`/trips/${tripId}`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    
+    return { 
+      success: true, 
+      message: response.data?.message || "Destination updated successfully",
+      data: response.data 
+    };
+  } catch (error: any) {
+    console.error("Update destination error:", error);
+    console.error("Error response:", error.response?.data);
+    console.error("Error status:", error.response?.status);
+    
+    let message = "Failed to update destination";
+    if (error.response && error.response.data) {
       message = error.response.data.message || 
                 error.response.data.error || 
                 error.response.data.errors?.join?.(", ") ||

@@ -8,6 +8,7 @@ const DashboardPage = () => import("../pages/dashboard.vue");
 const AboutPage = () => import("../pages/AboutPage.vue");
 const ContactPage = () => import("../pages/ContactPage.vue");
 const CreateDestinationPage = () => import("../pages/CreateDestinationPage.vue");
+const EditDestinationPage = () => import("../pages/EditDestinationPage.vue");
 const router = createRouter({
   history: createWebHistory(),
   routes: [
@@ -50,6 +51,11 @@ const router = createRouter({
       path: "/destinations/create",
       name: "create-destination",
       component: CreateDestinationPage,
+    },
+    {
+      path: "/destinations/edit/:tripId",
+      name: "edit-destination",
+      component: EditDestinationPage,
     },
   ],
   scrollBehavior() {

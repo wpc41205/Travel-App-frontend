@@ -100,42 +100,12 @@ const openCreateForm = () => {
 };
 
 const openEditForm = (trip: UserTrip) => {
-  editingTrip.value = trip;
-  form.title = trip.title ?? "";
-  form.description = trip.description ?? "";
-  
-  // Handle photos - can be string or array
-  if (Array.isArray(trip.photos)) {
-    form.photos = trip.photos.filter((p): p is string => typeof p === "string" && p.trim() !== "");
-    form.image = trip.photos[0] ?? "";
-    // Set additional photos (skip first one as it's in image field)
-    additionalPhotosText.value = trip.photos.slice(1).join("\n");
-  } else if (typeof trip.photos === "string" && trip.photos.trim()) {
-    form.image = trip.photos;
-    form.photos = [trip.photos];
-    additionalPhotosText.value = "";
-  } else {
-    form.image = "";
-    form.photos = [];
-    additionalPhotosText.value = "";
+  const identifier = getTripIdentifier(trip);
+  if (!identifier) {
+    errorMessage.value = "Cannot edit this trip. Missing trip identifier.";
+    return;
   }
-  
-  form.latitude = (trip.latitude as string) || "";
-  form.longitude = (trip.longitude as string) || "";
-  
-  // Handle tags
-  if (Array.isArray(trip.tags)) {
-    form.tags = trip.tags.filter((t): t is string => typeof t === "string" && t.trim() !== "");
-    tagsText.value = form.tags.join(", ");
-  } else if (typeof trip.tags === "string" && trip.tags.trim()) {
-    form.tags = trip.tags.split(",").map(t => t.trim()).filter(t => t);
-    tagsText.value = trip.tags;
-  } else {
-    form.tags = [];
-    tagsText.value = "";
-  }
-  
-  isFormOpen.value = true;
+  router.push({ name: "edit-destination", params: { tripId: identifier } });
 };
 
 const closeForm = () => {
@@ -242,16 +212,24 @@ const viewTrip = (trip: UserTrip) => {
   router.push({ name: "trip-detail", params: { tripId: identifier } });
 };
 
+const cleanTag = (tag: string): string => {
+  // Remove special characters like brackets, quotes, etc. and keep only text
+  return tag
+    .replace(/[\[\]""''(){}]/g, "") // Remove brackets, quotes, parentheses, braces
+    .trim();
+};
+
 const extractTags = (value: UserTrip["tags"]): string[] => {
   if (Array.isArray(value)) {
     return value
       .filter((tag): tag is string => typeof tag === "string" && tag.trim() !== "")
-      .map((tag) => tag.trim());
+      .map((tag) => cleanTag(tag))
+      .filter((tag) => tag !== "");
   }
   if (typeof value === "string" && value.trim()) {
     return value
-      .split(",")
-      .map((tag) => tag.trim())
+      .split(/[,|]/)
+      .map((tag) => cleanTag(tag))
       .filter((tag) => tag !== "");
   }
   return [];
