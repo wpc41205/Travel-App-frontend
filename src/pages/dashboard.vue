@@ -96,12 +96,6 @@ const loadTrips = async () => {
   }
 };
 
-const openCreateForm = () => {
-  editingTrip.value = null;
-  resetForm();
-  isFormOpen.value = true;
-};
-
 const openEditForm = (trip: UserTrip) => {
   const identifier = getTripIdentifier(trip);
   if (!identifier) {
@@ -267,43 +261,6 @@ const formatCoordinates = (
   if (!lat && !lng) return "-";
   if (lat && lng) return `${lat}, ${lng}`;
   return lat ? `${lat}` : `${lng}`;
-};
-
-const totalTrips = computed(() => trips.value.length);
-
-const taggedTripCount = computed(() =>
-  trips.value.filter((trip) => extractTags(trip.tags).length > 0).length
-);
-
-const geoReadyCount = computed(() =>
-  trips.value.filter(
-    (trip) => formatCoordinates(trip.latitude, trip.longitude) !== "-"
-  ).length
-);
-
-const photoInventory = computed(() =>
-  trips.value.reduce((count, trip) => {
-    if (Array.isArray(trip.photos)) {
-      return (
-        count +
-        trip.photos.filter(
-          (photo): photo is string => typeof photo === "string" && photo.trim() !== ""
-        ).length
-      );
-    }
-
-    if (typeof trip.photos === "string" && trip.photos.trim()) {
-      return count + 1;
-    }
-
-    return count;
-  }, 0)
-);
-
-const formatShare = (count: number): string => {
-  const total = totalTrips.value;
-  if (!total) return "0%";
-  return `${Math.round((count / total) * 100)}%`;
 };
 
 const formatDate = (value?: string | number | Date | null) => {
