@@ -216,32 +216,40 @@ export async function createDestination(payload: CreateDestinationPayload): Prom
             const decoded = atob(parts[1]);
             if (decoded) {
               const tokenPayload = JSON.parse(decoded);
-              
+
               // Debug: Log token payload to see what fields are available
               console.log("Token payload:", tokenPayload);
               console.log("Token payload keys:", Object.keys(tokenPayload));
-              
+
               // Try multiple possible field names for user ID
-              const extractedId = tokenPayload.userId || 
-                                  tokenPayload.id || 
-                                  tokenPayload.user_id || 
-                                  tokenPayload.authorId ||
-                                  tokenPayload.sub ||
-                                  tokenPayload.user?.id ||
-                                  tokenPayload.userId ||
-                                  tokenPayload.user?.userId;
-              
+              // IMPORTANT: We do NOT treat `sub` as numeric ID anymore because in this app it is an email.
+              const extractedId =
+                tokenPayload.userId ||
+                tokenPayload.id ||
+                tokenPayload.user_id ||
+                tokenPayload.authorId ||
+                tokenPayload.user?.id ||
+                tokenPayload.userId ||
+                tokenPayload.user?.userId;
+
               console.log("Extracted ID from token:", extractedId);
-              
-              if (extractedId) {
+
+              if (extractedId !== undefined && extractedId !== null) {
                 const numId = Number(extractedId);
                 if (!isNaN(numId)) {
                   return numId;
                 } else {
-                  console.warn("Extracted ID is not a number:", extractedId, typeof extractedId);
+                  console.warn(
+                    "Extracted ID is not a valid numeric user id. Token 'sub' is likely an email, which is expected in this project.",
+                    extractedId,
+                    typeof extractedId
+                  );
                 }
               } else {
-                console.warn("No ID field found in token payload. Available fields:", Object.keys(tokenPayload));
+                console.warn(
+                  "No numeric ID field found in token payload. Available fields:",
+                  Object.keys(tokenPayload)
+                );
               }
             }
           } else {

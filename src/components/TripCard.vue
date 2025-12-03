@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
 import type { Trip } from "../api";
 import { getTripIdentifier } from "../utils/tripIdentifier";
@@ -16,10 +16,6 @@ const emit = defineEmits<{
 }>();
 
 const router = useRouter();
-
-const handleTagClick = (tag: string) => {
-  emit("tagClick", tag);
-};
 
 const cleanTag = (tag: string): string => {
   // Remove special characters like brackets, quotes, etc. and keep only text
@@ -45,18 +41,22 @@ const parseList = (value: Nullable<string | string[]>): string[] => {
   return [];
 };
 
+// Full tag list from trip data
 const tagList = computed<string[]>(() => {
   const sources = [props.trip.tags, props.trip.topics, props.trip.keywords];
 
   for (const source of sources) {
     const list = parseList(source);
     if (list.length > 0) {
-      return list.slice(0, 6);
+      return list;
     }
   }
 
   return [];
 });
+
+// State for showing all tags on a single card
+const showAllTags = ref(false);
 
 const tripIdentifier = computed(() => getTripIdentifier(props.trip));
 
@@ -93,17 +93,28 @@ const goToDetail = () => {
 
       <!-- Tags -->
       <div
-        v-if="tagList.length "
+        v-if="tagList.length"
         class="flex flex-wrap gap-2"
       >
         <button
-          type="button"
-          v-for="(tag, index) in tagList"
+          v-for="(tag, index) in (showAllTags ? tagList : tagList.slice(0, 3))"
           :key="`${trip.title}-tag-${index}`"
+          type="button"
           class="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-blue-100 hover:text-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
-          @click="handleTagClick(tag)"
+          @click="emit('tagClick', tag)"
         >
           {{ tag }}
+        </button>
+
+        <!-- "+" button to toggle show all tags -->
+        <button
+          v-if="tagList.length > 3"
+          type="button"
+          class="inline-flex items-center rounded-full border border-dashed border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2"
+          @click.stop="showAllTags = !showAllTags"
+        >
+          <span v-if="!showAllTags">+ {{ tagList.length - 3 }}</span>
+          <span v-else>–</span>
         </button>
       </div>
 

@@ -11,20 +11,27 @@ const selectedTags = ref<string[]>([]);
 const currentPage = ref(1);
 const tripsPerPage = 9;
 
-const normalizeTag = (tag: string) => tag.trim().toLowerCase();
+// Make sure tag cleaning/normalization matches TripCard.vue
+const cleanTag = (tag: string): string => {
+  return tag
+    .replace(/[\[\]"'(){}]/g, "") // Remove brackets, quotes, parentheses, braces
+    .trim();
+};
+
+const normalizeTag = (tag: string) => cleanTag(tag).toLowerCase();
 
 const parseList = (value: unknown): string[] => {
   if (!value) return [];
   if (Array.isArray(value)) {
     return value
       .filter((item): item is string => typeof item === "string")
-      .map((item) => item.trim())
+      .map((item) => cleanTag(item))
       .filter((item) => item !== "");
   }
   if (typeof value === "string") {
     return value
       .split(/[,|]/)
-      .map((item) => item.trim())
+      .map((item) => cleanTag(item))
       .filter((item) => item !== "");
   }
   return [];
